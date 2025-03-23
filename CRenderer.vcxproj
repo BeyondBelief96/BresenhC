@@ -72,8 +72,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Graphics\Sdl\SDL3-3.2.8\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Graphics\Sdl\SDL3-3.2.8\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Graphics\Sdl\SDL3-3.2.8\include;C:\Users\brand\Code\graphics\BresenhC\CRenderer\include;C:\Graphics\Sdl\SDL3-3.2.8\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Graphics\Sdl\SDL3-3.2.8\lib;C:\Graphics\Sdl\SDL3-3.2.8\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\Graphics\Sdl\SDL3-3.2.8\include;C:\Users\brand\Code\graphics\BresenhC\CRenderer\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>C:\Graphics\Sdl\SDL3-3.2.8\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -114,8 +118,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Graphics\Sdl\SDL3-3.2.8\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Graphics\Sdl\SDL3-3.2.8\lib\x64;C:\Graphics\Sdl\SDL3-3.2.8\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;%(AdditionalDependencies);SDL3.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -132,10 +136,26 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Graphics\Sdl\SDL3-3.2.8\lib\x64;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);SDL3.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.c" />
+    <ClCompile Include="src\display.c" />
+    <ClCompile Include="src\main.c" />
+    <ClCompile Include="src\math_utils.c" />
+    <ClCompile Include="src\vector.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\display.h" />
+    <ClInclude Include="include\math_utils.h" />
+    <ClInclude Include="include\vector.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include="SDL3.dll" />
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
