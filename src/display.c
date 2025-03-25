@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "math_utils.h"
 #include "display.h"
 
 
@@ -49,7 +50,6 @@ bool initialize_window()
 
 void destroy_window(void)
 {
-	free(color_buffer);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
@@ -110,4 +110,34 @@ void draw_rect(int x, int y, int width, int height, uint32_t color)
 			draw_pixel(i, j, color);
 		}
 	}
+}
+
+void draw_line_dda(int x0, int y0, int x1, int y1, uint32_t color)
+{
+	int delta_x = x1 - x0;
+	int delta_y = y1 - y0;
+
+	// Calculate which axis has the greater distance
+	int steps = MAX(abs(delta_x), abs(delta_y));
+
+	// Calculate increment in x and y for each step, one of these will be 1, while the other will be the slope.
+	float increment_x = (float)delta_x / (float)steps;
+	float increment_y = (float)delta_y / (float)steps;
+
+	// Casting to float to avoid truncation since inrement is a float, intial values are x0 and y0.
+	float current_x = (float)x0;
+	float current_y = (float)y0;
+	for (int i = 0; i <= steps; i++)
+	{
+		draw_pixel((uint32_t)current_x, (uint32_t)current_y, color);
+		current_x += increment_x;
+		current_y += increment_y;
+	}
+}
+
+void draw_triangle(brh_triangle triangle, uint32_t color)
+{
+	draw_line_dda(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, color);
+	draw_line_dda(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, color);
+	draw_line_dda(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y, color);
 }

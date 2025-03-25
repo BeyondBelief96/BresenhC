@@ -2,14 +2,14 @@
 
 typedef struct
 {
-	double x;
-	double y;
+	float x;
+	float y;
 } brh_vector2;
 
 typedef struct {
-	double x;
-	double y;
-	double z;
+	float x;
+	float y;
+	float z;
 } brh_vector3;
 
 brh_vector3 vec3_rotate_x(brh_vector3 v, double angle);

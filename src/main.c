@@ -5,43 +5,21 @@
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include "math_utils.h"
 #include "display.h"
 #include "vector.h"
-#include "math.h"
+#include "mesh.h"
+#include "array.h"
+#include "obj_loader.h"
 
-#define N_POINTS 9 * 9 * 9
+brh_triangle* triangles_to_render = NULL;
 
 bool is_running = true;
 uint32_t cell_size;
 
 float fov_factor = 640;
-
-brh_vector3 cube_points[N_POINTS];
-brh_vector2 projected_points[N_POINTS];
 	
 brh_vector3 camera_position = { .x = 0, .y = 0, .z = -5 };
-brh_vector3 cube_rotation = { .x = 0, .y = 0, .z = 0 };
-
-void generate_cube_points(float cube_side_length)
-{
-	int point_count = 0;
-	float step = 2.0f / (cube_side_length - 1); 
-
-	for (float x = -1.0f; x <= 1.0f + 0.0001f; x += step)
-	{
-		for (float y = -1.0f; y <= 1.0f + 0.0001f; y += step)
-		{
-			for (float z = -1.0f; z <= 1.0f + 0.0001f; z += step)
-			{
-				if (point_count < N_POINTS)
-				{
-					brh_vector3 point = { .x = x, .y = y, .z = z };
-					cube_points[point_count++] = point;
-				}
-			}
-		}
-	}
-}
 
 brh_vector2 project(brh_vector3 point)
 {
@@ -74,8 +52,14 @@ void setup(void)
 	}
 
 	cell_size = gcd(window_width, window_height);
-	
-	generate_cube_points(9);
+
+	// Loads our global mesh with the cube vertices and faces
+	bool loaded = load_obj("assets/f22.obj", &mesh);
+	if (!loaded)
+	{
+		fprintf(stderr, "Error loading OBJ file\n");
+		return;
+	}
 }
 
 void process_input(void)
@@ -99,26 +83,42 @@ void process_input(void)
 
 void update(void)
 {
-	cube_rotation.y += 0.05f;
-	cube_rotation.z += 0.01f;
-	cube_rotation.x += 0.01f;
+	mesh.rotation.y += 0.00f;
+	mesh.rotation.z += 0.00f;
+	mesh.rotation.x += 0.01f;
 
-	for (int i = 0; i < N_POINTS; i++)
+	// Initialize the array of triangles to render
+	triangles_to_render = NULL;
+
+
+	int num_faces = array_length(mesh.faces);
+	for (int i = 0; i < num_faces; i++)
 	{
-		// Grab the original point
-		brh_vector3 point = cube_points[i];
+		brh_face face = mesh.faces[i];
+		brh_vector3 face_vertices[3];
+		face_vertices[0] = mesh.vertices[face.a - 1];
+		face_vertices[1] = mesh.vertices[face.b - 1];
+		face_vertices[2] = mesh.vertices[face.c - 1];
 
-		// Rotate the point around the y-axis
-		brh_vector3 transformed_point = vec3_rotate_y(point, cube_rotation.y);
-		transformed_point = vec3_rotate_z(transformed_point, cube_rotation.z);
-		transformed_point = vec3_rotate_x(transformed_point, cube_rotation.x);
+		brh_triangle projected_triangle;
+		for (int j = 0; j < 3; j++)
+		{
+			brh_vector3 vertex = face_vertices[j];
+			brh_vector3 transformed_vertex = vec3_rotate_y(vertex, mesh.rotation.y);
+			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+			transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
+			transformed_vertex.z -= camera_position.z;
 
-		// Translate the point away from the camera
-		transformed_point.z -= camera_position.z;
+			brh_vector2 projected_point = project(transformed_vertex);
 
-		// Project the transformed point onto the 2D screen
-		brh_vector2 projected_point = project(transformed_point);
-		projected_points[i] = projected_point;
+			// Scale and translate the projected point to the center of the screen
+			projected_point.x += window_width / 2;
+			projected_point.y += window_height / 2;
+			projected_triangle.points[j] = projected_point;
+		}
+
+		// Save each projected triangle for each face
+		array_push(triangles_to_render, projected_triangle);
 	}
 }
 
@@ -127,15 +127,31 @@ void render(void)
 	clear_color_buffer(0xFF000000);
 	draw_grid(cell_size, 0xFF333333);
 
-	for (int i = 0; i < N_POINTS; i++)
+	int num_triangles = array_length(triangles_to_render);
+
+	for (int i = 0; i < num_triangles; i++)
 	{
-		brh_vector2 projected_point = projected_points[i];
-		draw_rect(projected_point.x + window_width / 2.0f, projected_point.y + window_height / 2.0f, 5, 5, 0xFF00FF00);
+		brh_triangle triangle = triangles_to_render[i];
+		draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFF00FF00);
+		draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFF00FF00);
+		draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFF00FF00);
+
+		draw_triangle(triangle, 0xFF00FF00);
 	}
+
+	// Clear the array of triangles to render every frame loop
+	array_free(triangles_to_render);
 
 	render_color_buffer();
 
 	SDL_RenderPresent(renderer);
+}
+
+void free_resources(void)
+{
+	free(color_buffer);
+	array_free(mesh.vertices);
+	array_free(mesh.faces);
 }
 
 int main(int argc, char* argv[])
@@ -151,6 +167,7 @@ int main(int argc, char* argv[])
 	}
 
 	destroy_window();
+	free_resources();
 
 	return 0;
 }
