@@ -7,10 +7,12 @@
 #include <SDL3/SDL_main.h>
 #include "math_utils.h"
 #include "display.h"
-#include "vector.h"
-#include "mesh.h"
+#include "brh_vector3.h"
+#include "brh_vector2.h"
+#include "brh_mesh.h"
+#include "brh_triangle.h"
 #include "array.h"
-#include "obj_loader.h"
+#include "model_loader.h"
 
 brh_triangle* triangles_to_render = NULL;
 
@@ -19,7 +21,7 @@ uint32_t cell_size;
 
 float fov_factor = 640;
 	
-brh_vector3 camera_position = { .x = 0, .y = 0, .z = -5 };
+brh_vector3 camera_position = { .x = 0, .y = 0, .z = 0 };
 
 brh_vector2 project(brh_vector3 point)
 {
@@ -29,6 +31,38 @@ brh_vector2 project(brh_vector3 point)
 	};
 
 	return projected_point;
+}
+
+bool should_cull_face_manual(brh_vector3* vertices, brh_vector3 camera_position)
+{
+	// Check for backface culling
+	/*
+	*     A
+	*	/   \
+	*  C-----B
+	*/
+	brh_vector3 vecA = vertices[0];
+	brh_vector3 vecB = vertices[1];
+	brh_vector3 vecC = vertices[2];
+	brh_vector3 vecAB = vec3_subtract(vecB, vecA);
+	brh_vector3 vecAC = vec3_subtract(vecC, vecA);
+	brh_vector3 face_normal = vec3_cross(vecAB, vecAC);
+	vec3_normalize(&face_normal);
+	// Goes from vector a on the face to the camera position
+	brh_vector3 view_vector = vec3_subtract(camera_position, vecA);
+	float angle_between = vec3_dot(face_normal, view_vector);
+	if (angle_between < 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool should_cull_face(brh_vector3 face_normal, brh_vector3 camera_position)
+{
+	brh_vector3 view_vector = vec3_subtract(camera_position, face_normal);
+	float angle_between = vec3_dot(face_normal, view_vector);
+	return angle_between < 0;
 }
 
 void setup(void)
@@ -53,8 +87,8 @@ void setup(void)
 
 	cell_size = gcd(window_width, window_height);
 
-	// Loads our global mesh with the cube vertices and faces
-	bool loaded = load_obj("assets/f22.obj", &mesh);
+	//bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
+	bool loaded = load_obj("./assets/f22.obj", &mesh);
 	if (!loaded)
 	{
 		fprintf(stderr, "Error loading OBJ file\n");
@@ -83,13 +117,12 @@ void process_input(void)
 
 void update(void)
 {
-	mesh.rotation.y += 0.00f;
-	mesh.rotation.z += 0.00f;
-	mesh.rotation.x += 0.01f;
+	mesh.rotation.x += 0.001f;
+	mesh.rotation.y += 0.001f;
+	mesh.rotation.z += 0.001f;
 
 	// Initialize the array of triangles to render
 	triangles_to_render = NULL;
-
 
 	int num_faces = array_length(mesh.faces);
 	for (int i = 0; i < num_faces; i++)
@@ -100,16 +133,31 @@ void update(void)
 		face_vertices[1] = mesh.vertices[face.b - 1];
 		face_vertices[2] = mesh.vertices[face.c - 1];
 
+		brh_vector3 transformed_vertices[3];
 		brh_triangle projected_triangle;
 		for (int j = 0; j < 3; j++)
 		{
 			brh_vector3 vertex = face_vertices[j];
-			brh_vector3 transformed_vertex = vec3_rotate_y(vertex, mesh.rotation.y);
-			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
-			transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
-			transformed_vertex.z -= camera_position.z;
 
-			brh_vector2 projected_point = project(transformed_vertex);
+			// Preform rotations
+			brh_vector3 transformed_vertex = vec3_rotate_x(vertex, mesh.rotation.x);
+			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
+			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+
+			// Translate the vertex away from the camera by the camera position
+			transformed_vertex.z += 5;
+			transformed_vertices[j] = transformed_vertex;
+		}
+
+		if (should_cull_face_manual(transformed_vertices, camera_position))
+		{
+			continue;
+		}
+
+		for (int j = 0; j < 3; j++)
+		{
+			// Project the vertex from 3D World space to 2D screen space
+			brh_vector2 projected_point = project(transformed_vertices[j]);
 
 			// Scale and translate the projected point to the center of the screen
 			projected_point.x += window_width / 2;

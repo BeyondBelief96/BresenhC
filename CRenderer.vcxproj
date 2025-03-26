@@ -142,22 +142,25 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\array.c" />
+    <ClCompile Include="src\brh_vector2.c" />
     <ClCompile Include="src\display.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\math_utils.c" />
-    <ClCompile Include="src\mesh.c" />
-    <ClCompile Include="src\obj_loader.c" />
-    <ClCompile Include="src\triangle.c" />
-    <ClCompile Include="src\vector.c" />
+    <ClCompile Include="src\brh_mesh.c" />
+    <ClCompile Include="src\model_loader.c" />
+    <ClCompile Include="src\brh_triangle.c" />
+    <ClCompile Include="src\brh_vector3.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\array.h" />
+    <ClInclude Include="include\brh_vector3.h" />
+    <ClInclude Include="include\cgltf.h" />
     <ClInclude Include="include\display.h" />
     <ClInclude Include="include\math_utils.h" />
-    <ClInclude Include="include\mesh.h" />
-    <ClInclude Include="include\obj_loader.h" />
-    <ClInclude Include="include\triangle.h" />
-    <ClInclude Include="include\vector.h" />
+    <ClInclude Include="include\brh_mesh.h" />
+    <ClInclude Include="include\model_loader.h" />
+    <ClInclude Include="include\brh_triangle.h" />
+    <ClInclude Include="include\brh_vector2.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitattributes" />
@@ -166,8 +169,14 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Object Include="assets\cube.obj" />
-    <Object Include="assets\f22.obj" />
+    <Object Include="assets\cube.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Object>
+    <Object Include="assets\f22.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Object>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

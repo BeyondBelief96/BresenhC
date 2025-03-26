@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vector.h"
-#include "triangle.h"
+#include "brh_vector3.h"
+#include "brh_triangle.h"
 
 #define N_CUBE_VERTICES 8
 #define N_CUBE_FACES 12
@@ -29,6 +29,7 @@ extern brh_face cube_faces[N_CUBE_FACES];
  */
 typedef struct {
 	brh_vector3* vertices;
+	brh_vector3* normals;
 	brh_face* faces;
 	brh_vector3 rotation;
 } brh_mesh;

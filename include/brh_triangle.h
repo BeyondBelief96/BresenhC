@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vector.h"
+#include "brh_vector2.h"
 
 /**
  * @struct brh_face
@@ -23,6 +23,9 @@ typedef struct {
     int a;
     int b;
     int c;
+    int na;
+    int nb;
+    int nc;
 } brh_face;
 
 /**

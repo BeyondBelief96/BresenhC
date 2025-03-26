@@ -1,0 +1,11 @@
+Model Information:
+* title:	Supermarine Spitfire
+* source:	https://sketchfab.com/3d-models/supermarine-spitfire-8349f26e1e88455da75dd7352b02b794
+* author:	Renafox (https://sketchfab.com/kryik1023)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Supermarine Spitfire" (https://sketchfab.com/3d-models/supermarine-spitfire-8349f26e1e88455da75dd7352b02b794) by Renafox (https://sketchfab.com/kryik1023) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)

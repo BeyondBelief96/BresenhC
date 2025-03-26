@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "mesh.h"
+#include "brh_mesh.h"
 #include "array.h"
 
 /*

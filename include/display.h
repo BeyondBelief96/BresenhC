@@ -3,7 +3,7 @@
 #include <SDL3/SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "triangle.h"
+#include "brh_triangle.h"
 
 extern SDL_Window* window;
 extern SDL_Renderer* renderer;
