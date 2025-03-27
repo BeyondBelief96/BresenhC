@@ -14,7 +14,7 @@
 #include "array.h"
 #include "model_loader.h"
 
-uint64_t previous_frame_time = 0;
+uint32_t previous_frame_time = 0;
 brh_triangle* triangles_to_render = NULL;
 
 bool is_running = true;
@@ -88,7 +88,7 @@ void setup(void)
 	cell_size = gcd(window_width, window_height);
 
 	//bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-	bool loaded = load_obj("./assets/cube.obj", &mesh);
+	bool loaded = load_obj("./assets/f22.obj", &mesh, true);
 	if (!loaded)
 	{
 		fprintf(stderr, "Error loading OBJ file\n");
@@ -117,7 +117,7 @@ void process_input(void)
 
 void update(void)
 {
-	uint64_t time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
+	uint32_t time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
 
 	// Only delay execution if we are running too fast
 	if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
@@ -192,11 +192,11 @@ void render(void)
 		draw_filled_triangle(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, 0xFFFFFFFF);
 	}
 
-	for (int i = 0; i < num_triangles; i++)
+	/*for (int i = 0; i < num_triangles; i++)
 	{
 		brh_triangle triangle = triangles_to_render[i];
 		draw_triangle_outline(triangle, 0xFF000000);
-	}
+	}*/
 
 	// Clear the array of triangles to render every frame loop
 	array_free(triangles_to_render);

@@ -23,8 +23,37 @@ void destroy_window(void);
 
 extern void draw_pixel(uint32_t x, uint32_t y, uint32_t color);
 void draw_rect(int x, int y, int width, int height, uint32_t color);
+
+/*
+* Draws a line using the DDA algorithm.
+* 
+* This function draws a line using the Digital Differential Analyzer (DDA) algorithm.
+* 
+* @param x0 The x coordinate of the starting point.
+* @param y0 The y coordinate of the starting point.
+* @param x1 The x coordinate of the ending point.
+* @param y1 The y coordinate of the ending point.
+* @param color The color of the line.
+* 
+* @return void
+*/
 void draw_line_dda(int x0, int y0, int x1, int y1, uint32_t color);
+
+/*
+* Draws a horizontal line.
+* 
+* This function draws a horizontal line assuming the same y coordinate.
+* x0 does not have to be less than x1. The function will handle that.
+* 
+* @param x0 The x coordinate of the starting point.
+* @param x1 The x coordinate of the ending point.
+* @param y The y coordinate of the line.
+* @param color The color of the line.
+* 
+* @return void
+*/
 void draw_horizontal_line(int x0, int x1, int y, uint32_t color);
+
 void draw_grid(int cell_size, uint32_t color);
 void render_color_buffer(void);
 void clear_color_buffer(uint32_t color);

@@ -28,8 +28,8 @@ void fill_flat_bottom_triangle(int x0, int y0, int x1, int y1, int x2, int y2, u
     for (int scanline_y = y0; scanline_y <= y1; scanline_y++)
     {
         draw_horizontal_line(scanline_x_start, scanline_x_end, scanline_y, color);
-        scanline_x_start = interpolate_x_from_y(x0, y0, x1, y1, scanline_y);
-        scanline_x_end = interpolate_x_from_y(x0, y0, x2, y2, scanline_y);
+        scanline_x_start = (int)interpolate_x_from_y(x0, y0, x1, y1, scanline_y);
+        scanline_x_end = (int) interpolate_x_from_y(x0, y0, x2, y2, scanline_y);
 
         if (scanline_x_start > scanline_x_end)
         {
@@ -63,32 +63,14 @@ void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint
     for (int scanline_y = y2; scanline_y >= y0; scanline_y--)
     {
         draw_horizontal_line(scanline_x_start, scanline_x_end, scanline_y, color);
-        scanline_x_start = interpolate_x_from_y(x2, y2, x0, y0, scanline_y);
-        scanline_x_end = interpolate_x_from_y(x2, y2, x1, y1, scanline_y);
+        scanline_x_start = (int) interpolate_x_from_y(x2, y2, x0, y0, scanline_y);
+        scanline_x_end = (int) interpolate_x_from_y(x2, y2, x1, y1, scanline_y);
 
 		if (scanline_x_start > scanline_x_end)
 		{
 			swap_int(&scanline_x_start, &scanline_x_end);
 		}
     }
-}
-
-/*
-* @brief Interpolates the x value from a given y value.
-*
-* This function calculates the x value of a point given a y value using linear interpolation.
-*
-* @param x0 The x value of the first point.
-* @param y0 The y value of the first point.
-* @param x1 The x value of the second point.
-* @param y1 The y value of the second point.
-* @param y The y value of the point to interpolate.
-*
-* @return The x value of the interpolated point.
-*/
-int interpolate_x_from_y(int x0, int y0, int x1, int y1, int y)
-{
-    return x0 + (x1 - x0) * (y - y0) / (y1 - y0);
 }
 
 void draw_triangle_outline(brh_triangle triangle, uint32_t color)
@@ -157,7 +139,7 @@ void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32
     {
         // Calculate midpoint vertex of the longest side equal to y1
         int my = y1;
-        int mx = interpolate_x_from_y(x0, y0, x2, y2, y1);
+        int mx = (int) interpolate_x_from_y(x0, y0, x2, y2, y1);
 
         // Draw Flat Bottom Triangle
         fill_flat_bottom_triangle(x0, y0, x1, y1, mx, my, color);

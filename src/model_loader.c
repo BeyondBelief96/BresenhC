@@ -15,7 +15,7 @@
 * 
 * @return true if the OBJ file was loaded successfully, false otherwise
 */
-bool load_obj(const char* file_path, brh_mesh* mesh)
+bool load_obj(const char* file_path, brh_mesh* mesh, bool isRightHanded)
 {
 	FILE* file;
 	file = fopen(file_path, "r");
@@ -38,6 +38,11 @@ bool load_obj(const char* file_path, brh_mesh* mesh)
 			{
 				fprintf(stderr, "Error parsing vertex data\n");
 				return false;
+			}
+
+			if (isRightHanded)
+			{
+				vertex.z = -vertex.z;
 			}
 			array_push(mesh->vertices, vertex);
 		}
@@ -63,6 +68,13 @@ bool load_obj(const char* file_path, brh_mesh* mesh)
                 fprintf(stderr, "Error parsing face data\n");
                 return false;
             }
+
+			if (isRightHanded)
+			{
+				int temp = face.a;
+				face.a = face.c;
+				face.c = temp;
+			}
             array_push(mesh->faces, face);
         }
 	}
