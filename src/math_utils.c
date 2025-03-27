@@ -33,3 +33,13 @@ float interpolate_x_from_y(int x0, int y0, int x1, int y1, int y)
 {
 	return x0 + (x1 - x0) * (float)(y - y0) / (float)(y1 - y0);
 }
+
+float calculate_slope(int x0, int y0, int x1, int y1)
+{
+	return (float)(y1 - y0) / (float)(x1 - x0);
+}
+
+float calculate_inverse_slope(int x0, int y0, int x1, int y1)
+{
+	return (float)(x1 - x0) / (float)(y1 - y0);
+}

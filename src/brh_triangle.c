@@ -18,24 +18,20 @@
 //  (x1,y1)------(x2,y2)
 //
 ///////////////////////////////////////////////////////////////////////////////
-void fill_flat_bottom_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color)
-{
-    assert(y0 <= y1); // Ensure y0 is less than or equal to y1
-    assert(y1 == y2); // Ensure y1 is equal to y2 for flat bottom
+void fill_flat_bottom_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) {
+    // Find the two slopes (two triangle legs)
+	float inv_slope_1 = calculate_inverse_slope(x0, y0, x1, y1);
+	float inv_slope_2 = calculate_inverse_slope(x0, y0, x2, y2);
 
-    int scanline_x_start = x0;
-    int scanline_x_end = x0;
-    for (int scanline_y = y0; scanline_y <= y1; scanline_y++)
-    {
-        draw_horizontal_line(scanline_x_start, scanline_x_end, scanline_y, color);
-        scanline_x_start = (int)interpolate_x_from_y(x0, y0, x1, y1, scanline_y);
-        scanline_x_end = (int) interpolate_x_from_y(x0, y0, x2, y2, scanline_y);
+    // Start x_start and x_end from the top vertex (x0,y0)
+    float x_start = x0;
+    float x_end = x0;
 
-        if (scanline_x_start > scanline_x_end)
-        {
-            swap_int(&scanline_x_start, &scanline_x_end);
-        }
-
+    // Loop all the scanlines from top to bottom
+    for (int y = y0; y <= y2; y++) {
+        draw_line_dda(x_start, y, x_end, y, color);
+        x_start += inv_slope_1;
+        x_end += inv_slope_2;
     }
 }
 
@@ -52,24 +48,20 @@ void fill_flat_bottom_triangle(int x0, int y0, int x1, int y1, int x2, int y2, u
 //        (x2,y2)
 //
 ///////////////////////////////////////////////////////////////////////////////
-void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color)
-{
-    assert(y0 == y1); // Ensure y0 is equal to y1 for flat top
-    assert(y2 >= y0); // Ensure y2 is greater than or equal to y0
+void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) {
+    // Find the two slopes (two triangle legs)
+	float inv_slope_1 = calculate_inverse_slope(x2, y2, x0, y0);
+	float inv_slope_2 = calculate_inverse_slope(x2, y2, x1, y1);
 
-    // Starting from top going up to the top.
-    int scanline_x_start = x2;
-    int scanline_x_end = x2;
-    for (int scanline_y = y2; scanline_y >= y0; scanline_y--)
-    {
-        draw_horizontal_line(scanline_x_start, scanline_x_end, scanline_y, color);
-        scanline_x_start = (int) interpolate_x_from_y(x2, y2, x0, y0, scanline_y);
-        scanline_x_end = (int) interpolate_x_from_y(x2, y2, x1, y1, scanline_y);
+    // Start x_start and x_end from the bottom vertex (x2,y2)
+    float x_start = x2;
+    float x_end = x2;
 
-		if (scanline_x_start > scanline_x_end)
-		{
-			swap_int(&scanline_x_start, &scanline_x_end);
-		}
+    // Loop all the scanlines from bottom to top
+    for (int y = y2; y >= y0; y--) {
+        draw_line_dda(x_start, y, x_end, y, color);
+        x_start -= inv_slope_1;
+        x_end -= inv_slope_2;
     }
 }
 
@@ -139,7 +131,7 @@ void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32
     {
         // Calculate midpoint vertex of the longest side equal to y1
         int my = y1;
-        int mx = (int) interpolate_x_from_y(x0, y0, x2, y2, y1);
+        int mx = interpolate_x_from_y(x0, y0, x2, y2, y1);
 
         // Draw Flat Bottom Triangle
         fill_flat_bottom_triangle(x0, y0, x1, y1, mx, my, color);
