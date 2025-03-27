@@ -137,7 +137,7 @@ void draw_line_dda(int x0, int y0, int x1, int y1, uint32_t color)
 
 void draw_horizontal_line(int x0, int x1, int y, uint32_t color)
 {
-	for (int x = x0; x < x1; x++)
+	for (int x = x0; x <= x1; x++)
 	{
 		draw_pixel(x, y, color);
 	}

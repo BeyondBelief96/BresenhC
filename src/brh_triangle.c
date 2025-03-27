@@ -22,17 +22,19 @@ void fill_flat_bottom_triangle(int x0, int y0, int x1, int y1, int x2, int y2, u
 {
     assert(y0 <= y1); // Ensure y0 is less than or equal to y1
     assert(y1 == y2); // Ensure y1 is equal to y2 for flat bottom
-    assert(x0 != x1 || x0 != x2); // Ensure the points are not collinear
 
     int scanline_x_start = x0;
     int scanline_x_end = x0;
     for (int scanline_y = y0; scanline_y <= y1; scanline_y++)
     {
-		assert(scanline_x_start <= scanline_x_end); // Ensure the start x is less than or equal to the end x
-		assert(scanline_y >= y0 && scanline_y <= y1); // Ensure the scanline y is within the triangle
         draw_horizontal_line(scanline_x_start, scanline_x_end, scanline_y, color);
         scanline_x_start = interpolate_x_from_y(x0, y0, x1, y1, scanline_y);
         scanline_x_end = interpolate_x_from_y(x0, y0, x2, y2, scanline_y);
+
+        if (scanline_x_start > scanline_x_end)
+        {
+            swap_int(&scanline_x_start, &scanline_x_end);
+        }
 
     }
 }
@@ -54,19 +56,20 @@ void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint
 {
     assert(y0 == y1); // Ensure y0 is equal to y1 for flat top
     assert(y2 >= y0); // Ensure y2 is greater than or equal to y0
-    assert(x0 != x1 || x0 != x2); // Ensure the points are not collinear
 
     // Starting from top going up to the top.
     int scanline_x_start = x2;
     int scanline_x_end = x2;
     for (int scanline_y = y2; scanline_y >= y0; scanline_y--)
     {
-		assert(scanline_x_start <= scanline_x_end); // Ensure the start is less than or equal to the end
-		assert(scanline_y >= y0 && scanline_y <= y2); // Ensure the scanline is within the triangle
-
         draw_horizontal_line(scanline_x_start, scanline_x_end, scanline_y, color);
         scanline_x_start = interpolate_x_from_y(x2, y2, x0, y0, scanline_y);
         scanline_x_end = interpolate_x_from_y(x2, y2, x1, y1, scanline_y);
+
+		if (scanline_x_start > scanline_x_end)
+		{
+			swap_int(&scanline_x_start, &scanline_x_end);
+		}
     }
 }
 
@@ -95,6 +98,29 @@ void draw_triangle_outline(brh_triangle triangle, uint32_t color)
     draw_line_dda(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y, color);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Draw a filled triangle with the flat-top/flat-bottom method
+// We split the original triangle in two, half flat-bottom and half flat-top
+///////////////////////////////////////////////////////////////////////////////
+//
+//          (x0,y0)
+//            / \
+//           /   \
+//          /     \
+//         /       \
+//        /         \
+//   (x1,y1)------(Mx,My)
+//       \_           \
+//          \_         \
+//             \_       \
+//                \_     \
+//                   \    \
+//                     \_  \
+//                        \_\
+//                           \
+//                         (x2,y2)
+//
+///////////////////////////////////////////////////////////////////////////////
 void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color)
 {
     // Sort the vertices by y coordinate ascending to simplify the drawing
@@ -114,7 +140,6 @@ void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32
         swap_int(&y0, &y1);
     }
 
-    // Ensure vertices are sorted by y coordinate
     assert(y0 <= y1 && y1 <= y2); 
 
     if ((int)y1 == (int)y2)

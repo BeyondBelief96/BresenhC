@@ -14,6 +14,7 @@
 #include "array.h"
 #include "model_loader.h"
 
+uint64_t previous_frame_time = 0;
 brh_triangle* triangles_to_render = NULL;
 
 bool is_running = true;
@@ -116,9 +117,18 @@ void process_input(void)
 
 void update(void)
 {
-	mesh.rotation.x += 0.001f;
-	mesh.rotation.y += 0.001f;
-	mesh.rotation.z += 0.001f;
+	uint64_t time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
+
+	// Only delay execution if we are running too fast
+	if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
+		SDL_Delay(time_to_wait);
+	}
+
+	previous_frame_time = SDL_GetTicks();
+
+	mesh.rotation.x += 0.01f;
+	mesh.rotation.y += 0.01f;
+	mesh.rotation.z += 0.01f;
 
 	// Initialize the array of triangles to render
 	triangles_to_render = NULL;
@@ -179,11 +189,13 @@ void render(void)
 	for (int i = 0; i < num_triangles; i++)
 	{
 		brh_triangle triangle = triangles_to_render[i];
-		draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFF00FF00);
-		draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFF00FF00);
-		draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFF00FF00);
+		draw_filled_triangle(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, 0xFFFFFFFF);
+	}
 
-		draw_filled_triangle(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, 0xFF00FF00);
+	for (int i = 0; i < num_triangles; i++)
+	{
+		brh_triangle triangle = triangles_to_render[i];
+		draw_triangle_outline(triangle, 0xFF000000);
 	}
 
 	// Clear the array of triangles to render every frame loop

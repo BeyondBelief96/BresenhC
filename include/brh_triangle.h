@@ -41,5 +41,31 @@ typedef struct {
     brh_vector2 points[3];
 } brh_triangle;
 
+/*
+* @brief Draws the wireframe of a triangle.
+* 
+* This function draws the wireframe of a triangle using the Bresenham's line algorithm.
+* 
+* @param triangle The triangle to draw.
+* @param color The color of the triangle.
+* 
+* @return void
+*/
 void draw_triangle_outline(brh_triangle, uint32_t color);
+
+/*
+* @brief Draws a filled triangle.
+* 
+* This function draws a filled triangle using the scanline algorithm.
+* 
+* @param x0 The x coordinate of the first vertex.
+* @param y0 The y coordinate of the first vertex.
+* @param x1 The x coordinate of the second vertex.
+* @param y1 The y coordinate of the second vertex.
+* @parm x2 The x coordinate of the third vertex.
+* @param y2 The y coordinate of the third vertex.
+* @param color The color of the triangle.
+* 
+* @return void
+*/
 void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color);
