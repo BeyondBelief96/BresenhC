@@ -47,7 +47,6 @@ bool should_cull_face_manual(brh_vector3* vertices, brh_vector3 camera_position)
 	brh_vector3 vecAB = vec3_subtract(vecB, vecA);
 	brh_vector3 vecAC = vec3_subtract(vecC, vecA);
 	brh_vector3 face_normal = vec3_cross(vecAB, vecAC);
-	vec3_normalize(&face_normal);
 	// Goes from vector a on the face to the camera position
 	brh_vector3 view_vector = vec3_subtract(camera_position, vecA);
 	float angle_between = vec3_dot(face_normal, view_vector);
@@ -88,7 +87,7 @@ void setup(void)
 	cell_size = gcd(window_width, window_height);
 
 	//bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-	bool loaded = load_obj("./assets/f22.obj", &mesh);
+	bool loaded = load_obj("./assets/cube.obj", &mesh);
 	if (!loaded)
 	{
 		fprintf(stderr, "Error loading OBJ file\n");
@@ -184,7 +183,7 @@ void render(void)
 		draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFF00FF00);
 		draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFF00FF00);
 
-		draw_triangle(triangle, 0xFF00FF00);
+		draw_filled_triangle(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, 0xFF00FF00);
 	}
 
 	// Clear the array of triangles to render every frame loop

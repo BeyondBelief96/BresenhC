@@ -29,7 +29,6 @@ extern brh_face cube_faces[N_CUBE_FACES];
  */
 typedef struct {
 	brh_vector3* vertices;
-	brh_vector3* normals;
 	brh_face* faces;
 	brh_vector3 rotation;
 } brh_mesh;

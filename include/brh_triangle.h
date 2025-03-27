@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include "brh_vector2.h"
 
 /**
@@ -23,9 +24,6 @@ typedef struct {
     int a;
     int b;
     int c;
-    int na;
-    int nb;
-    int nc;
 } brh_face;
 
 /**
@@ -42,3 +40,6 @@ typedef struct {
 typedef struct {
     brh_vector2 points[3];
 } brh_triangle;
+
+void draw_triangle_outline(brh_triangle, uint32_t color);
+void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color);

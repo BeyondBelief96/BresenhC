@@ -8,3 +8,10 @@ uint32_t gcd(uint32_t a, uint32_t b) {
 	}
 	return a;
 }
+
+void swap_int(int* a, int* b)
+{
+	int temp = *a;
+	*a = *b;
+	*b = temp;
+}

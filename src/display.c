@@ -135,9 +135,10 @@ void draw_line_dda(int x0, int y0, int x1, int y1, uint32_t color)
 	}
 }
 
-void draw_triangle(brh_triangle triangle, uint32_t color)
+void draw_horizontal_line(int x0, int x1, int y, uint32_t color)
 {
-	draw_line_dda(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, color);
-	draw_line_dda(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, color);
-	draw_line_dda(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y, color);
+	for (int x = x0; x < x1; x++)
+	{
+		draw_pixel(x, y, color);
+	}
 }

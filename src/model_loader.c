@@ -41,7 +41,7 @@ bool load_obj(const char* file_path, brh_mesh* mesh)
 			}
 			array_push(mesh->vertices, vertex);
 		}
-        else if (strncmp(line, "vn", 2) == 0)
+        /*else if (strncmp(line, "vn", 2) == 0)
         {
             brh_vector3 normal;
 			errno_t err = sscanf(line, "vn %f %f %f\n", &normal.x, &normal.y, &normal.z);
@@ -51,14 +51,14 @@ bool load_obj(const char* file_path, brh_mesh* mesh)
 				return false;
 			}
             array_push(mesh->normals, normal);
-        }
+        }*/
         else if (line[0] == 'f')
         {
             brh_face face;
             // face data is formatted like f 1/1/1 2/2/1 3/3/1, where the first number is the vertex index
             // and the second number is the texture index and the third number is the normal index
-            errno_t err = sscanf(line, "f %d/%*d/%d %d/%*d/%d %d/%*d/%d\n", &face.a, &face.na, &face.b, &face.nb, &face.c, &face.nc);
-            if (err != 6)
+            errno_t err = sscanf(line, "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d\n", &face.a, &face.b, &face.c);
+            if (err != 3)
             {
                 fprintf(stderr, "Error parsing face data\n");
                 return false;
@@ -132,17 +132,17 @@ bool load_gltf(const char* file_path, brh_mesh* mesh)
                 }
             }
 
-            if (normal_accessor)
-            {
-                for (cgltf_size n = 0; n < normal_accessor->count; ++n)
-                {
-                    cgltf_float normal[3];
-                    cgltf_accessor_read_float(normal_accessor, n, normal, 3);
-                    // Convert from right-handed to left-handed coordinate system
-                    brh_vector3 normal_vector = { normal[0], normal[1], -normal[2] };
-                    array_push(mesh->normals, normal_vector);
-                }
-            }
+            //if (normal_accessor)
+            //{
+            //    for (cgltf_size n = 0; n < normal_accessor->count; ++n)
+            //    {
+            //        cgltf_float normal[3];
+            //        cgltf_accessor_read_float(normal_accessor, n, normal, 3);
+            //        // Convert from right-handed to left-handed coordinate system
+            //        brh_vector3 normal_vector = { normal[0], normal[1], -normal[2] };
+            //        array_push(mesh->normals, normal_vector);
+            //    }
+            //}
 
             if (index_accessor)
             {

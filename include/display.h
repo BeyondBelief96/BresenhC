@@ -21,7 +21,7 @@ void destroy_window(void);
 extern void draw_pixel(uint32_t x, uint32_t y, uint32_t color);
 void draw_rect(int x, int y, int width, int height, uint32_t color);
 void draw_line_dda(int x0, int y0, int x1, int y1, uint32_t color);
-void draw_triangle(brh_triangle, uint32_t color);
+void draw_horizontal_line(int x0, int x1, int y, uint32_t color);
 void draw_grid(int cell_size, uint32_t color);
 void render_color_buffer(void);
 void clear_color_buffer(uint32_t color);
