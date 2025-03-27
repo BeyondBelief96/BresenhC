@@ -21,212 +21,249 @@ bool is_running = true;
 uint32_t cell_size;
 
 float fov_factor = 640;
-	
+
 brh_vector3 camera_position = { .x = 0, .y = 0, .z = 0 };
 
 brh_vector2 project(brh_vector3 point)
 {
-	brh_vector2 projected_point = {
-		.x = (point.x  / point.z) * fov_factor,
-		.y = (point.y / point.z) * fov_factor ,
-	};
+    brh_vector2 projected_point = {
+        .x = (int)((point.x / point.z) * fov_factor),
+        .y = (int)((point.y / point.z) * fov_factor),
+    };
 
-	return projected_point;
+    return projected_point;
 }
 
 bool should_cull_face_manual(brh_vector3* vertices, brh_vector3 camera_position)
 {
-	// Check for backface culling
-	/*
-	*     A
-	*	/   \
-	*  C-----B
-	*/
-	brh_vector3 vecA = vertices[0];
-	brh_vector3 vecB = vertices[1];
-	brh_vector3 vecC = vertices[2];
-	brh_vector3 vecAB = vec3_subtract(vecB, vecA);
-	brh_vector3 vecAC = vec3_subtract(vecC, vecA);
-	brh_vector3 face_normal = vec3_cross(vecAB, vecAC);
-	// Goes from vector a on the face to the camera position
-	brh_vector3 view_vector = vec3_subtract(camera_position, vecA);
-	float angle_between = vec3_dot(face_normal, view_vector);
-	if (angle_between < 0)
-	{
-		return true;
-	}
-	return false;
+    // Check for backface culling
+    /*
+    *     A
+    *    /  \
+    *  C-----B
+    */
+    brh_vector3 vecA = vertices[0];
+    brh_vector3 vecB = vertices[1];
+    brh_vector3 vecC = vertices[2];
+    brh_vector3 vecAB = vec3_subtract(vecB, vecA);
+    brh_vector3 vecAC = vec3_subtract(vecC, vecA);
+    brh_vector3 face_normal = vec3_cross(vecAB, vecAC);
+    // Goes from vector a on the face to the camera position
+    brh_vector3 view_vector = vec3_subtract(camera_position, vecA);
+    float angle_between = vec3_dot(face_normal, view_vector);
+    if (angle_between < 0)
+    {
+        return true;
+    }
+    return false;
 }
 
 bool should_cull_face(brh_vector3 face_normal, brh_vector3 camera_position)
 {
-	brh_vector3 view_vector = vec3_subtract(camera_position, face_normal);
-	float angle_between = vec3_dot(face_normal, view_vector);
-	return angle_between < 0;
+    brh_vector3 view_vector = vec3_subtract(camera_position, face_normal);
+    float angle_between = vec3_dot(face_normal, view_vector);
+    return angle_between < 0;
 }
 
 void setup(void)
 {
-	// Allocate back buffera
-	color_buffer = (uint32_t*) malloc(sizeof(uint32_t) * window_width * window_height);
-	assert(color_buffer != NULL); // Ensure malloc succeeded
-	if (!color_buffer)
-	{
-		assert(color_buffer);
-		fprintf(stderr, "Color buffer could not be created!");
-		return;
-	}
+    render_method = RENDER_WIREFRAME;
+    cull_method = CULL_BACKFACE;
 
-	// Create color buffer texture
-	color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, window_width, window_height);
-	if (!color_buffer_texture)
-	{
-		fprintf(stderr, "Color buffer texture could not be created! SDL_Error: %s\n", SDL_GetError());
-		return;
-	}
+    // Allocate back buffers
+    color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
+    assert(color_buffer != NULL); // Ensure malloc succeeded
+    if (!color_buffer)
+    {
+        assert(color_buffer);
+        fprintf(stderr, "Color buffer could not be created!");
+        return;
+    }
 
-	cell_size = gcd(window_width, window_height);
+    // Create color buffer texture
+    color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, window_width, window_height);
+    if (!color_buffer_texture)
+    {
+        fprintf(stderr, "Color buffer texture could not be created! SDL_Error: %s\n", SDL_GetError());
+        return;
+    }
 
-	//bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-	bool loaded = load_obj("./assets/f22.obj", &mesh, true);
-	if (!loaded)
-	{
-		fprintf(stderr, "Error loading OBJ file\n");
-		return;
-	}
+    cell_size = gcd(window_width, window_height);
+
+    //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
+    bool loaded = load_obj("./assets/f22.obj", &mesh, true);
+    if (!loaded)
+    {
+        fprintf(stderr, "Error loading OBJ file\n");
+        return;
+    }
 }
 
 void process_input(void)
 {
-	SDL_Event event;
-	SDL_PollEvent(&event);
+    SDL_Event event;
+    SDL_PollEvent(&event);
 
-	switch (event.type)
-	{
-		case SDL_EVENT_QUIT:
-			is_running = false;
-			break;
-		case SDL_EVENT_KEY_DOWN:
-			if (event.key.key == SDLK_ESCAPE)
-			{
-				is_running = false;
-			}
-			break;
-	}
+    switch (event.type)
+    {
+    case SDL_EVENT_QUIT:
+        is_running = false;
+        break;
+    case SDL_EVENT_KEY_DOWN:
+        if (event.key.key == SDLK_ESCAPE)
+        {
+            is_running = false;
+        }
+        if (event.key.key == SDLK_1)
+        {
+            render_method = RENDER_WIREFRAME_VERTEX;
+        }
+        if (event.key.key == SDLK_2)
+        {
+            render_method = RENDER_WIREFRAME;
+        }
+        if (event.key.key == SDLK_3)
+        {
+            render_method = RENDER_FILL_TRIANGLE;
+        }
+        if (event.key.key == SDLK_4)
+        {
+            render_method = RENDER_FILL_TRIANGLE_WIREFRAME;
+        }
+        if (event.key.key == SDLK_C)
+        {
+            cull_method = CULL_BACKFACE;
+        }
+        if (event.key.key == SDLK_D)
+        {
+            cull_method = CULL_NONE;
+        }
+        break;
+    }
 }
 
 void update(void)
 {
-	uint32_t time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
+    uint32_t time_to_wait = FRAME_TARGET_TIME - (uint32_t)(SDL_GetTicks() - previous_frame_time);
 
-	// Only delay execution if we are running too fast
-	if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
-		SDL_Delay(time_to_wait);
-	}
+    // Only delay execution if we are running too fast
+    if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
+        SDL_Delay(time_to_wait);
+    }
 
-	previous_frame_time = SDL_GetTicks();
+    previous_frame_time = (uint32_t)SDL_GetTicks();
 
-	mesh.rotation.x += 0.01f;
-	mesh.rotation.y += 0.01f;
-	mesh.rotation.z += 0.01f;
+    mesh.rotation.x += 0.01f;
+    mesh.rotation.y += 0.01f;
+    mesh.rotation.z += 0.01f;
 
-	// Initialize the array of triangles to render
-	triangles_to_render = NULL;
+    // Initialize the array of triangles to render
+    triangles_to_render = NULL;
 
-	int num_faces = array_length(mesh.faces);
-	for (int i = 0; i < num_faces; i++)
-	{
-		brh_face face = mesh.faces[i];
-		brh_vector3 face_vertices[3];
-		face_vertices[0] = mesh.vertices[face.a - 1];
-		face_vertices[1] = mesh.vertices[face.b - 1];
-		face_vertices[2] = mesh.vertices[face.c - 1];
+    int num_faces = array_length(mesh.faces);
+    for (int i = 0; i < num_faces; i++)
+    {
+        brh_face face = mesh.faces[i];
+        brh_vector3 face_vertices[3];
+        face_vertices[0] = mesh.vertices[face.a - 1];
+        face_vertices[1] = mesh.vertices[face.b - 1];
+        face_vertices[2] = mesh.vertices[face.c - 1];
 
-		brh_vector3 transformed_vertices[3];
-		brh_triangle projected_triangle;
-		for (int j = 0; j < 3; j++)
-		{
-			brh_vector3 vertex = face_vertices[j];
+        brh_vector3 transformed_vertices[3];
+        brh_triangle projected_triangle;
+        for (int j = 0; j < 3; j++)
+        {
+            brh_vector3 vertex = face_vertices[j];
 
-			// Preform rotations
-			brh_vector3 transformed_vertex = vec3_rotate_x(vertex, mesh.rotation.x);
-			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
-			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+            // Preform rotations
+            brh_vector3 transformed_vertex = vec3_rotate_x(vertex, mesh.rotation.x);
+            transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
+            transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
-			// Translate the vertex away from the camera by the camera position
-			transformed_vertex.z += 5;
-			transformed_vertices[j] = transformed_vertex;
-		}
+            // Translate the vertex away from the camera by the camera position
+            transformed_vertex.z += 5;
+            transformed_vertices[j] = transformed_vertex;
+        }
 
-		if (should_cull_face_manual(transformed_vertices, camera_position))
-		{
-			continue;
-		}
+        if (cull_method == CULL_BACKFACE && should_cull_face_manual(transformed_vertices, camera_position))
+        {
+            continue;
+        }
 
-		for (int j = 0; j < 3; j++)
-		{
-			// Project the vertex from 3D World space to 2D screen space
-			brh_vector2 projected_point = project(transformed_vertices[j]);
+        for (int j = 0; j < 3; j++)
+        {
+            // Project the vertex from 3D World space to 2D screen space
+            brh_vector2 projected_point = project(transformed_vertices[j]);
 
-			// Scale and translate the projected point to the center of the screen
-			projected_point.x += window_width / 2;
-			projected_point.y += window_height / 2;
-			projected_triangle.points[j] = projected_point;
-		}
+            // Scale and translate the projected point to the center of the screen
+            projected_point.x += window_width / 2;
+            projected_point.y += window_height / 2;
+            projected_triangle.points[j] = projected_point;
+        }
 
-		// Save each projected triangle for each face
-		array_push(triangles_to_render, projected_triangle);
-	}
+        // Save each projected triangle for each face
+        array_push(triangles_to_render, projected_triangle);
+    }
 }
 
 void render(void)
 {
-	clear_color_buffer(0xFF000000);
-	draw_grid(cell_size, 0xFF333333);
+    clear_color_buffer(0xFF000000);
+    draw_grid(cell_size, 0xFF333333);
 
-	int num_triangles = array_length(triangles_to_render);
+    int num_triangles = array_length(triangles_to_render);
 
-	for (int i = 0; i < num_triangles; i++)
-	{
-		brh_triangle triangle = triangles_to_render[i];
-		draw_filled_triangle(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, 0xFFFFFFFF);
-	}
+    for (int i = 0; i < num_triangles; i++)
+    {
+        brh_triangle triangle = triangles_to_render[i];
 
-	/*for (int i = 0; i < num_triangles; i++)
-	{
-		brh_triangle triangle = triangles_to_render[i];
-		draw_triangle_outline(triangle, 0xFF000000);
-	}*/
+        if (render_method == RENDER_FILL_TRIANGLE || render_method == RENDER_FILL_TRIANGLE_WIREFRAME)
+        {
+            draw_filled_triangle((int)triangle.points[0].x, (int)triangle.points[0].y, (int)triangle.points[1].x, (int)triangle.points[1].y, (int)triangle.points[2].x, (int)triangle.points[2].y, 0xFF555555);
+        }
 
-	// Clear the array of triangles to render every frame loop
-	array_free(triangles_to_render);
+        if (render_method == RENDER_WIREFRAME || render_method == RENDER_WIREFRAME_VERTEX || render_method == RENDER_FILL_TRIANGLE_WIREFRAME)
+        {
+            draw_triangle_outline(triangle, 0xFFFFFFFF);
+        }
 
-	render_color_buffer();
+        if (render_method == RENDER_WIREFRAME_VERTEX)
+        {
+            draw_rect((int)triangle.points[0].x - 3, (int)triangle.points[0].y - 3, 6, 6, 0xFFFF0000);
+            draw_rect((int)triangle.points[1].x - 3, (int)triangle.points[1].y - 3, 6, 6, 0xFFFF0000);
+            draw_rect((int)triangle.points[2].x - 3, (int)triangle.points[2].y - 3, 6, 6, 0xFFFF0000);
+        }
+    }
 
-	SDL_RenderPresent(renderer);
+    // Clear the array of triangles to render every frame loop
+    array_free(triangles_to_render);
+
+    render_color_buffer();
+
+    SDL_RenderPresent(renderer);
 }
 
 void free_resources(void)
 {
-	free(color_buffer);
-	array_free(mesh.vertices);
-	array_free(mesh.faces);
+    free(color_buffer);
+    array_free(mesh.vertices);
+    array_free(mesh.faces);
 }
 
 int main(int argc, char* argv[])
 {
-	is_running = initialize_window();
-	setup();
+    is_running = initialize_window();
+    setup();
 
-	while (is_running)
-	{
-		process_input();
-		update();
-		render();
-	}
+    while (is_running)
+    {
+        process_input();
+        update();
+        render();
+    }
 
-	destroy_window();
-	free_resources();
+    destroy_window();
+    free_resources();
 
-	return 0;
+    return 0;
 }
