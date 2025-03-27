@@ -27,7 +27,9 @@ Vertices:
 brh_mesh mesh = {
 	.vertices = NULL,
 	.faces = NULL,
-	.rotation = {.x = 0, .y = 0, .z = 0 },
+	.rotation = {.x = 0.0f, .y = 0.0f, .z = 0.0f },
+	.scale = {.x = 1.0f, .y = 1.0f, .z = 1.0f },
+	.translation = {.x = 0.0f, .y = 0.0f, .z = 0.0f }
 };
 
 

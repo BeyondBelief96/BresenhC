@@ -1,6 +1,6 @@
 #pragma once
 
-#include "brh_vector3.h"
+#include "brh_vector.h"
 #include "brh_triangle.h"
 
 #define N_CUBE_VERTICES 8
@@ -26,11 +26,19 @@ extern brh_face cube_faces[N_CUBE_FACES];
  * 
  * @var brh_mesh::rotation
  * Defines the rotation of the mesh in the 3D space using Euler angles.
+ * 
+ * @var brh_mesh::scale
+ * Defines the scale of the mesh in the 3D space.
+ * 
+ * @var brh_mesh::translation
+ * Defines the translation of the mesh in the 3D space.
  */
 typedef struct {
 	brh_vector3* vertices;
 	brh_face* faces;
+	brh_vector3 scale;
 	brh_vector3 rotation;
+	brh_vector3 translation;
 } brh_mesh;
 
 extern brh_mesh mesh;

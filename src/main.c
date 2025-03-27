@@ -8,8 +8,8 @@
 #include "math_utils.h"
 #include "display.h"
 #include "brh_triangle.h"
-#include "brh_vector3.h"
-#include "brh_vector2.h"
+#include "brh_vector.h"
+#include "brh_matrix.h"
 #include "brh_mesh.h"
 #include "array.h"
 #include "model_loader.h"
@@ -155,6 +155,11 @@ void update(void)
 
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
+    mesh.scale.x += 0.002f;
+
+    // Create a scale matrix that will be used to multiplay the mesh vertices
+	brh_mat4 scale_matrix = mat4_create_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+
     mesh.rotation.x += 0.01f;
     mesh.rotation.y += 0.01f;
     mesh.rotation.z += 0.01f;
@@ -171,32 +176,45 @@ void update(void)
         face_vertices[1] = mesh.vertices[face.b - 1];
         face_vertices[2] = mesh.vertices[face.c - 1];
 
-        brh_vector3 transformed_vertices[3];
+        brh_vector4 transformed_vertices[3];
         for (int j = 0; j < 3; j++)
         {
-            brh_vector3 vertex = face_vertices[j];
+            brh_vector4 transformed_vertex = vec4_from_vec3(face_vertices[j]);
 
             // Preform rotations
-            brh_vector3 transformed_vertex = vec3_rotate_x(vertex, mesh.rotation.x);
+
+            //TODO: Use a matrix to scale our original vertices
+			mat4_mul_vec4(scale_matrix, transformed_vertex);
+
+            /*transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
             transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
-            transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+            transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);*/
 
             // Translate the vertex away from the camera by the camera position
             transformed_vertex.z += 5;
+
             transformed_vertices[j] = transformed_vertex;
         }
 
-        if (cull_method == CULL_BACKFACE && should_cull_face_manual(transformed_vertices, camera_position))
+        if (cull_method == CULL_BACKFACE)
         {
-            continue;
-        }
+            brh_vector3 transformed_vertices_vec3[3];
+            for (int j = 0; j < 3; j++)
+            {
+                transformed_vertices_vec3[j] = vec3_from_vec4(transformed_vertices[j]);
+            }
 
+            if (should_cull_face_manual(transformed_vertices_vec3, camera_position))
+            {
+                continue;
+            }
+        }
 
         brh_vector2 projected_points[3];
         for (int j = 0; j < 3; j++)
         {
             // Project the vertex from 3D World space to 2D screen space
-            projected_points[j] = project(transformed_vertices[j]);
+			projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]));
 
             // Scale and translate the projected point to the center of the screen
             projected_points[j].x += window_width / 2;

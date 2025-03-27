@@ -142,25 +142,25 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\array.c" />
-    <ClCompile Include="src\brh_vector2.c" />
+    <ClCompile Include="src\brh_matrix.c" />
+    <ClCompile Include="src\brh_vector.c" />
     <ClCompile Include="src\display.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\math_utils.c" />
     <ClCompile Include="src\brh_mesh.c" />
     <ClCompile Include="src\model_loader.c" />
     <ClCompile Include="src\brh_triangle.c" />
-    <ClCompile Include="src\brh_vector3.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\array.h" />
-    <ClInclude Include="include\brh_vector3.h" />
+    <ClInclude Include="include\brh_matrix.h" />
+    <ClInclude Include="include\brh_vector.h" />
     <ClInclude Include="include\cgltf.h" />
     <ClInclude Include="include\display.h" />
     <ClInclude Include="include\math_utils.h" />
     <ClInclude Include="include\brh_mesh.h" />
     <ClInclude Include="include\model_loader.h" />
     <ClInclude Include="include\brh_triangle.h" />
-    <ClInclude Include="include\brh_vector2.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitattributes" />

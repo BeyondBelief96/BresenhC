@@ -33,13 +33,13 @@
     <ClCompile Include="src\brh_triangle.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\brh_vector3.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\model_loader.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\brh_vector2.c">
+    <ClCompile Include="src\brh_matrix.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_vector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,16 +59,16 @@
     <ClInclude Include="include\brh_triangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\brh_vector2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\model_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\cgltf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\brh_vector3.h">
+    <ClInclude Include="include\brh_matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

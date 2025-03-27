@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "brh_vector2.h"
+#include "brh_vector.h"
 
 /**
  * @struct brh_face
