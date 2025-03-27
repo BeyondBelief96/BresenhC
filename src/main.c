@@ -7,10 +7,10 @@
 #include <SDL3/SDL_main.h>
 #include "math_utils.h"
 #include "display.h"
+#include "brh_triangle.h"
 #include "brh_vector3.h"
 #include "brh_vector2.h"
 #include "brh_mesh.h"
-#include "brh_triangle.h"
 #include "array.h"
 #include "model_loader.h"
 
@@ -27,8 +27,8 @@ brh_vector3 camera_position = { .x = 0, .y = 0, .z = 0 };
 brh_vector2 project(brh_vector3 point)
 {
     brh_vector2 projected_point = {
-        .x = (int)((point.x / point.z) * fov_factor),
-        .y = (int)((point.y / point.z) * fov_factor),
+        .x = ((point.x / point.z) * fov_factor),
+        .y = ((point.y / point.z) * fov_factor),
     };
 
     return projected_point;
@@ -39,7 +39,7 @@ bool should_cull_face_manual(brh_vector3* vertices, brh_vector3 camera_position)
     // Check for backface culling
     /*
     *     A
-    *    /  \
+    *    / \
     *  C-----B
     */
     brh_vector3 vecA = vertices[0];
@@ -91,12 +91,14 @@ void setup(void)
     cell_size = gcd(window_width, window_height);
 
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-    bool loaded = load_obj("./assets/f22.obj", &mesh, true);
+    /*bool loaded = load_obj("./assets/f22.obj", &mesh, true);
     if (!loaded)
     {
         fprintf(stderr, "Error loading OBJ file\n");
         return;
-    }
+    }*/
+
+    load_cube_mesh();
 }
 
 void process_input(void)
@@ -170,7 +172,6 @@ void update(void)
         face_vertices[2] = mesh.vertices[face.c - 1];
 
         brh_vector3 transformed_vertices[3];
-        brh_triangle projected_triangle;
         for (int j = 0; j < 3; j++)
         {
             brh_vector3 vertex = face_vertices[j];
@@ -190,20 +191,48 @@ void update(void)
             continue;
         }
 
+
+        brh_vector2 projected_points[3];
         for (int j = 0; j < 3; j++)
         {
             // Project the vertex from 3D World space to 2D screen space
-            brh_vector2 projected_point = project(transformed_vertices[j]);
+            projected_points[j] = project(transformed_vertices[j]);
 
             // Scale and translate the projected point to the center of the screen
-            projected_point.x += window_width / 2;
-            projected_point.y += window_height / 2;
-            projected_triangle.points[j] = projected_point;
+            projected_points[j].x += window_width / 2;
+            projected_points[j].y += window_height / 2;
         }
+
+        brh_triangle projected_triangle = {
+            .points[0] = projected_points[0],
+            .points[1] = projected_points[1],
+            .points[2] = projected_points[2],
+            .color = face.color,
+			.avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)
+        };
 
         // Save each projected triangle for each face
         array_push(triangles_to_render, projected_triangle);
     }
+
+	// Sort the triangles to render by their average depth, implementing the painter's algorithm
+    if (triangles_to_render != NULL)
+    {
+        int num_triangles = array_length(triangles_to_render);
+        for (int i = 0; i < num_triangles; i++)
+        {
+            for (int j = i; j < num_triangles; j++)
+            {
+                if (triangles_to_render[i].avg_depth < triangles_to_render[j].avg_depth)
+                {
+                    brh_triangle temp = triangles_to_render[i];
+                    triangles_to_render[i] = triangles_to_render[j];
+                    triangles_to_render[j] = temp;
+                }
+            }
+        }
+    }
+    
 }
 
 void render(void)
@@ -219,7 +248,7 @@ void render(void)
 
         if (render_method == RENDER_FILL_TRIANGLE || render_method == RENDER_FILL_TRIANGLE_WIREFRAME)
         {
-            draw_filled_triangle((int)triangle.points[0].x, (int)triangle.points[0].y, (int)triangle.points[1].x, (int)triangle.points[1].y, (int)triangle.points[2].x, (int)triangle.points[2].y, 0xFF555555);
+            draw_filled_triangle((int)triangle.points[0].x, (int)triangle.points[0].y, (int)triangle.points[1].x, (int)triangle.points[1].y, (int)triangle.points[2].x, (int)triangle.points[2].y, triangle.color);
         }
 
         if (render_method == RENDER_WIREFRAME || render_method == RENDER_WIREFRAME_VERTEX || render_method == RENDER_FILL_TRIANGLE_WIREFRAME)

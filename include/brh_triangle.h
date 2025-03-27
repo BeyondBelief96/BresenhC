@@ -24,6 +24,7 @@ typedef struct {
     int a;
     int b;
     int c;
+    uint32_t color;
 } brh_face;
 
 /**
@@ -39,6 +40,8 @@ typedef struct {
  */
 typedef struct {
     brh_vector2 points[3];
+    uint32_t color;
+    float avg_depth;
 } brh_triangle;
 
 /*

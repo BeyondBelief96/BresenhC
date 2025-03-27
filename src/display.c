@@ -57,7 +57,7 @@ void destroy_window(void)
 	SDL_Quit();
 }
 
-void clear_color_buffer(arbg8888 color)
+void clear_color_buffer(uint32_t color)
 {
 	for (uint32_t y = 0; y < window_height; y++)
 	{
@@ -74,7 +74,7 @@ void render_color_buffer(void)
 	SDL_RenderTexture(renderer, color_buffer_texture, NULL, NULL);
 }
 
-inline void draw_pixel(uint32_t x, uint32_t y, arbg8888 color)
+inline void draw_pixel(uint32_t x, uint32_t y, uint32_t color)
 {
 	if (x >= 0 && x < window_width && y >= 0 && y < window_height)
 	{
@@ -82,7 +82,7 @@ inline void draw_pixel(uint32_t x, uint32_t y, arbg8888 color)
 	}
 }
 
-void draw_grid(int cell_size, arbg8888 color)
+void draw_grid(int cell_size, uint32_t color)
 {
 	// Draw vertical lines
 	for (uint32_t x = 0; x < window_width; x += (uint32_t)cell_size)
@@ -103,7 +103,7 @@ void draw_grid(int cell_size, arbg8888 color)
 	}
 }
 
-void draw_rect(int x, int y, int width, int height, arbg8888 color)
+void draw_rect(int x, int y, int width, int height, uint32_t color)
 {
 	for (int i = x; i < x + width; i++)
 	{
@@ -114,7 +114,7 @@ void draw_rect(int x, int y, int width, int height, arbg8888 color)
 	}
 }
 
-void draw_line_dda(int x0, int y0, int x1, int y1, arbg8888 color)
+void draw_line_dda(int x0, int y0, int x1, int y1, uint32_t color)
 {
 	int delta_x = x1 - x0;
 	int delta_y = y1 - y0;
@@ -137,7 +137,7 @@ void draw_line_dda(int x0, int y0, int x1, int y1, arbg8888 color)
 	}
 }
 
-void draw_horizontal_line(int x0, int x1, int y, arbg8888 color)
+void draw_horizontal_line(int x0, int x1, int y, uint32_t color)
 {
 	if (x0 > x1)
 	{

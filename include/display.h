@@ -8,8 +8,6 @@
 #define FPS 60
 #define FRAME_TARGET_TIME (1000 / FPS)
 
-typedef uint32_t arbg8888;
-
 enum cull_method {
 	CULL_NONE,
 	CULL_BACKFACE
@@ -61,7 +59,7 @@ void destroy_window(void);
  *
  * @return void
  */
-extern void draw_pixel(uint32_t x, uint32_t y, arbg8888 color);
+extern void draw_pixel(uint32_t x, uint32_t y, uint32_t color);
 
 /**
  * @brief Draws a rectangle on the screen at the specified coordinates with the specified color.
@@ -74,7 +72,7 @@ extern void draw_pixel(uint32_t x, uint32_t y, arbg8888 color);
  *
  * @return void
  */
-void draw_rect(int x, int y, int width, int height, arbg8888 color);
+void draw_rect(int x, int y, int width, int height, uint32_t color);
 
 /**
  * @brief Draws a line using the DDA algorithm.
@@ -89,7 +87,7 @@ void draw_rect(int x, int y, int width, int height, arbg8888 color);
  *
  * @return void
  */
-void draw_line_dda(int x0, int y0, int x1, int y1, arbg8888 color);
+void draw_line_dda(int x0, int y0, int x1, int y1, uint32_t color);
 
 /**
  * @brief Draws a horizontal line.
@@ -104,7 +102,7 @@ void draw_line_dda(int x0, int y0, int x1, int y1, arbg8888 color);
  *
  * @return void
  */
-void draw_horizontal_line(int x0, int x1, int y, arbg8888 color);
+void draw_horizontal_line(int x0, int x1, int y, uint32_t color);
 
 /**
  * @brief Draws a grid on the screen.
@@ -116,7 +114,7 @@ void draw_horizontal_line(int x0, int x1, int y, arbg8888 color);
  *
  * @return void
  */
-void draw_grid(int cell_size, arbg8888 color);
+void draw_grid(int cell_size, uint32_t color);
 
 /**
  * @brief Renders the color buffer to the screen.
@@ -138,4 +136,4 @@ void render_color_buffer(void);
  *
  * @return void
  */
-void clear_color_buffer(arbg8888 color);
+void clear_color_buffer(uint32_t color);

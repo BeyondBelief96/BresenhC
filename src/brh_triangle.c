@@ -24,12 +24,12 @@ void fill_flat_bottom_triangle(int x0, int y0, int x1, int y1, int x2, int y2, u
 	float inv_slope_2 = calculate_inverse_slope(x0, y0, x2, y2);
 
     // Start x_start and x_end from the top vertex (x0,y0)
-    float x_start = x0;
-    float x_end = x0;
+    float x_start = (float) x0;
+    float x_end = (float) x0;
 
     // Loop all the scanlines from top to bottom
     for (int y = y0; y <= y2; y++) {
-        draw_horizontal_line(x_start, x_end, y, color);
+        draw_horizontal_line((int) x_start, (int) x_end, (int) y, color);
         x_start += inv_slope_1;
         x_end += inv_slope_2;
     }
@@ -54,12 +54,12 @@ void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint
 	float inv_slope_2 = calculate_inverse_slope(x2, y2, x1, y1);
 
     // Start x_start and x_end from the bottom vertex (x2,y2)
-    float x_start = x2;
-    float x_end = x2;
+    float x_start = (float) x2;
+    float x_end = (float) x2;
 
     // Loop all the scanlines from bottom to top
     for (int y = y2; y >= y0; y--) {
-        draw_horizontal_line(x_start, x_end, y, color);
+        draw_horizontal_line((int) x_start, (int) x_end, (int) y, color);
         x_start -= inv_slope_1;
         x_end -= inv_slope_2;
     }
@@ -67,9 +67,9 @@ void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint
 
 void draw_triangle_outline(brh_triangle triangle, uint32_t color)
 {
-    draw_line_dda(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, color);
-    draw_line_dda(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, color);
-    draw_line_dda(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y, color);
+    draw_line_dda((int) triangle.points[0].x, (int)triangle.points[0].y, (int)triangle.points[1].x, (int) triangle.points[1].y, color);
+    draw_line_dda((int) triangle.points[1].x, (int) triangle.points[1].y, (int) triangle.points[2].x, (int) triangle.points[2].y, color);
+    draw_line_dda((int) triangle.points[2].x, (int) triangle.points[2].y, (int) triangle.points[0].x, (int) triangle.points[0].y, color);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,7 @@ void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32
     {
         // Calculate midpoint vertex of the longest side equal to y1
         int my = y1;
-        int mx = interpolate_x_from_y(x0, y0, x2, y2, y1);
+        int mx = (int) interpolate_x_from_y(x0, y0, x2, y2, y1);
 
         // Draw Flat Bottom Triangle
         fill_flat_bottom_triangle(x0, y0, x1, y1, mx, my, color);
