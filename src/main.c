@@ -34,37 +34,6 @@ brh_vector2 project(brh_vector3 point)
     return projected_point;
 }
 
-bool should_cull_face_manual(brh_vector3* vertices, brh_vector3 camera_position)
-{
-    // Check for backface culling
-    /*
-    *     A
-    *    / \
-    *  C-----B
-    */
-    brh_vector3 vecA = vertices[0];
-    brh_vector3 vecB = vertices[1];
-    brh_vector3 vecC = vertices[2];
-    brh_vector3 vecAB = vec3_subtract(vecB, vecA);
-    brh_vector3 vecAC = vec3_subtract(vecC, vecA);
-    brh_vector3 face_normal = vec3_cross(vecAB, vecAC);
-    // Goes from vector a on the face to the camera position
-    brh_vector3 view_vector = vec3_subtract(camera_position, vecA);
-    float angle_between = vec3_dot(face_normal, view_vector);
-    if (angle_between < 0)
-    {
-        return true;
-    }
-    return false;
-}
-
-bool should_cull_face(brh_vector3 face_normal, brh_vector3 camera_position)
-{
-    brh_vector3 view_vector = vec3_subtract(camera_position, face_normal);
-    float angle_between = vec3_dot(face_normal, view_vector);
-    return angle_between < 0;
-}
-
 void setup(void)
 {
     render_method = RENDER_WIREFRAME;
@@ -155,10 +124,12 @@ void update(void)
 
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
-    mesh.scale.x += 0.002f;
+    mesh.translation.x += 0.01f;
+    mesh.translation.z = 5.0f;
 
     // Create a scale matrix that will be used to multiplay the mesh vertices
 	brh_mat4 scale_matrix = mat4_create_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+	brh_mat4 translation_matrix = mat4_create_translation(mesh.translation.x, mesh.translation.y, mesh.translation.z);
 
     mesh.rotation.x += 0.01f;
     mesh.rotation.y += 0.01f;
@@ -183,28 +154,35 @@ void update(void)
 
             // Preform rotations
 
-            //TODO: Use a matrix to scale our original vertices
-			mat4_mul_vec4(scale_matrix, transformed_vertex);
+			mat4_mul_vec4_ref(scale_matrix, &transformed_vertex);
+			mat4_mul_vec4_ref(translation_matrix, &transformed_vertex);
 
             /*transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
             transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
             transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);*/
 
-            // Translate the vertex away from the camera by the camera position
-            transformed_vertex.z += 5;
-
             transformed_vertices[j] = transformed_vertex;
         }
 
+        // Backface culling test
         if (cull_method == CULL_BACKFACE)
         {
-            brh_vector3 transformed_vertices_vec3[3];
-            for (int j = 0; j < 3; j++)
-            {
-                transformed_vertices_vec3[j] = vec3_from_vec4(transformed_vertices[j]);
-            }
-
-            if (should_cull_face_manual(transformed_vertices_vec3, camera_position))
+            // Check for backface culling
+            /*
+            *     A
+            *    / \
+            *  C-----B
+            */
+            brh_vector3 vecA = vec3_from_vec4(transformed_vertices[0]);
+            brh_vector3 vecB = vec3_from_vec4(transformed_vertices[1]);
+            brh_vector3 vecC = vec3_from_vec4(transformed_vertices[2]);
+            brh_vector3 vecAB = vec3_subtract(vecB, vecA);
+            brh_vector3 vecAC = vec3_subtract(vecC, vecA);
+            brh_vector3 face_normal = vec3_cross(vecAB, vecAC);
+            // Goes from vector a on the face to the camera position
+            brh_vector3 view_vector = vec3_subtract(camera_position, vecA);
+            float angle_between = vec3_dot(face_normal, view_vector);
+            if (angle_between < 0)
             {
                 continue;
             }
