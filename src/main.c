@@ -124,16 +124,15 @@ void update(void)
 
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
-    mesh.translation.x += 0.01f;
-    mesh.translation.z = 5.0f;
-
-    // Create a scale matrix that will be used to multiplay the mesh vertices
-	brh_mat4 scale_matrix = mat4_create_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
-	brh_mat4 translation_matrix = mat4_create_translation(mesh.translation.x, mesh.translation.y, mesh.translation.z);
-
     mesh.rotation.x += 0.01f;
     mesh.rotation.y += 0.01f;
     mesh.rotation.z += 0.01f;
+
+    mesh.translation.x += 0.00f;
+    mesh.translation.z = 5.0f;
+
+    // Create the world matrix to transform each vertex of the mesh
+	brh_mat4 world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
 
     // Initialize the array of triangles to render
     triangles_to_render = NULL;
@@ -153,13 +152,7 @@ void update(void)
             brh_vector4 transformed_vertex = vec4_from_vec3(face_vertices[j]);
 
             // Preform rotations
-
-			mat4_mul_vec4_ref(scale_matrix, &transformed_vertex);
-			mat4_mul_vec4_ref(translation_matrix, &transformed_vertex);
-
-            /*transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
-            transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
-            transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);*/
+			mat4_mul_vec4_ref(&world_matrix, &transformed_vertex);
 
             transformed_vertices[j] = transformed_vertex;
         }
