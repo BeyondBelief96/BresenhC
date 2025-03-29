@@ -56,7 +56,7 @@ void setup(void)
         fprintf(stderr, "Color buffer texture could not be created! SDL_Error: %s\n", SDL_GetError());
         return;
     }
-
+    
     cell_size = gcd(window_width, window_height);
 
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
@@ -129,7 +129,7 @@ void update(void)
     mesh.rotation.z += 0.01f;
 
     mesh.translation.x += 0.00f;
-    mesh.translation.z = 5.0f;
+    mesh.translation.z = 15.0f;
 
     // Create the world matrix to transform each vertex of the mesh
 	brh_mat4 world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);

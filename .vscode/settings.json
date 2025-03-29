@@ -1,0 +1,8 @@
+{
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "**/*.yml": "yaml",
+    "display.h": "c",
+    "sdl.h": "c"
+  }
+}
