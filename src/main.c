@@ -48,7 +48,7 @@ void setup(void)
     
     cell_size = gcd(window_width, window_height);\
 
-	perspective_projection_matrix = mat4_create_perspective_projection(degrees_to_radians(60.0f), (float)window_height / (float)window_width, 0.1f, 100.0f);
+	perspective_projection_matrix = mat4_create_perspective_projection(degrees_to_radians(60.0f), (float)window_width / (float)window_height, 0.1f, 100.0f);
 
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
     /*bool loaded = load_obj("./assets/f22.obj", &mesh, true);

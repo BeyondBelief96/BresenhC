@@ -159,10 +159,10 @@ brh_mat4 mat4_create_perspective_projection(float fov, float aspect_ratio, float
 {
 	float fov_radians = 1.0f / tanf(fov / 2.0f);
 	brh_mat4 result = { 0 };
-	result.m[0][0] = aspect_ratio * fov_radians;
+	result.m[0][0] = fov_radians / aspect_ratio;
 	result.m[1][1] = fov_radians;
-	result.m[2][2] = far / (far - near);
-	result.m[2][3] = (-far * near) / (far - near);
+	result.m[2][2] = (-1* far - near) / (far - near);
+	result.m[2][3] = (2*far * near) / (near - far);
 	result.m[3][2] = 1.0f;
 	return result;
 }
