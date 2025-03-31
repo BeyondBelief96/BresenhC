@@ -1,7 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include <math.h>
 
+#define M_PI acos(-1.0)
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define SWAP(x, y) do { typeof(x) SWAP = x; x = y; y = SWAP; } while (0)
@@ -62,3 +64,14 @@ float calculate_slope(int x0, int y0, int x1, int y1);
 * @return The slope of the line.
 */
 float calculate_inverse_slope(int x0, int y0, int x1, int y1);
+
+/*
+* @brief Converts degrees to radians.
+* 
+* This function converts an angle from degrees to radians.
+* 
+* @param degrees The angle in degrees.
+* 
+* @return The angle in radians.
+*/
+float degrees_to_radians(float degrees);

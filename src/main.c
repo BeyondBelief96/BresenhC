@@ -20,19 +20,8 @@ brh_triangle* triangles_to_render = NULL;
 bool is_running = true;
 uint32_t cell_size;
 
-float fov_factor = 640;
-
 brh_vector3 camera_position = { .x = 0, .y = 0, .z = 0 };
-
-brh_vector2 project(brh_vector3 point)
-{
-    brh_vector2 projected_point = {
-        .x = ((point.x / point.z) * fov_factor),
-        .y = ((point.y / point.z) * fov_factor),
-    };
-
-    return projected_point;
-}
+brh_mat4 perspective_projection_matrix;
 
 void setup(void)
 {
@@ -57,7 +46,9 @@ void setup(void)
         return;
     }
     
-    cell_size = gcd(window_width, window_height);
+    cell_size = gcd(window_width, window_height);\
+
+	perspective_projection_matrix = mat4_create_perspective_projection(degrees_to_radians(60.0f), (float)window_height / (float)window_width, 0.1f, 100.0f);
 
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
     /*bool loaded = load_obj("./assets/f22.obj", &mesh, true);
@@ -125,11 +116,10 @@ void update(void)
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
     mesh.rotation.x += 0.01f;
-    mesh.rotation.y += 0.01f;
-    mesh.rotation.z += 0.01f;
-
-    mesh.translation.x += 0.00f;
-    mesh.translation.z = 15.0f;
+	mesh.scale.x = 1.0f;
+    //mesh.rotation.y += 0.01f;
+    //mesh.rotation.z += 0.01f;
+    mesh.translation.z = 5.0f;
 
     // Create the world matrix to transform each vertex of the mesh
 	brh_mat4 world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
@@ -151,9 +141,8 @@ void update(void)
         {
             brh_vector4 transformed_vertex = vec4_from_vec3(face_vertices[j]);
 
-            // Preform rotations
+            
 			mat4_mul_vec4_ref(&world_matrix, &transformed_vertex);
-
             transformed_vertices[j] = transformed_vertex;
         }
 
@@ -181,21 +170,26 @@ void update(void)
             }
         }
 
-        brh_vector2 projected_points[3];
+        brh_vector4 projected_points[3];
         for (int j = 0; j < 3; j++)
         {
             // Project the vertex from 3D World space to 2D screen space
-			projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]));
+			projected_points[j] = mat4_project_vec4(&perspective_projection_matrix, &transformed_vertices[j]);
 
-            // Scale and translate the projected point to the center of the screen
-            projected_points[j].x += window_width / 2;
-            projected_points[j].y += window_height / 2;
+			projected_points[j].x *= (float)window_width / 2.0;
+			projected_points[j].y *= (float)window_height / 2.0;
+
+            // Translate the projected points to the middle of the screen
+            projected_points[j].x += (window_width / 2.0);
+            projected_points[j].y += (window_height / 2.0);
         }
 
         brh_triangle projected_triangle = {
-            .points[0] = projected_points[0],
-            .points[1] = projected_points[1],
-            .points[2] = projected_points[2],
+            .points = {
+                { projected_points[0].x, projected_points[0].y },
+                { projected_points[1].x, projected_points[1].y },
+                { projected_points[2].x, projected_points[2].y },
+            },
             .color = face.color,
 			.avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)
         };

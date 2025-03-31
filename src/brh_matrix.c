@@ -155,5 +155,29 @@ brh_mat4 mat4_create_world_matrix(brh_vector3 translation, brh_vector3 rotation,
 	return world_matrix;
 }
 
+brh_mat4 mat4_create_perspective_projection(float fov, float aspect_ratio, float near, float far)
+{
+	float fov_radians = 1.0f / tanf(fov / 2.0f);
+	brh_mat4 result = { 0 };
+	result.m[0][0] = aspect_ratio * fov_radians;
+	result.m[1][1] = fov_radians;
+	result.m[2][2] = far / (far - near);
+	result.m[2][3] = (-far * near) / (far - near);
+	result.m[3][2] = 1.0f;
+	return result;
+}
+
+brh_vector4 mat4_project_vec4(const brh_mat4* m, brh_vector4* v)
+{
+	mat4_mul_vec4_ref(m, v);
+	if (v->w != 0.0f)
+	{
+		v->x /= v->w;
+		v->y /= v->w;
+		v->z /= v->w;
+	}
+	return *v;
+}
+
 
 
