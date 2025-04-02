@@ -13,6 +13,7 @@
 #include "brh_mesh.h"
 #include "array.h"
 #include "model_loader.h"
+#include "brh_light.h"
 
 uint32_t previous_frame_time = 0;
 brh_triangle* triangles_to_render = NULL;
@@ -51,14 +52,14 @@ void setup(void)
 	perspective_projection_matrix = mat4_create_perspective_projection(degrees_to_radians(60.0f), (float)window_width / (float)window_height, 0.1f, 100.0f);
 
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-    /*bool loaded = load_obj("./assets/f22.obj", &mesh, true);
-    if (!loaded)
+    bool loaded = load_obj("./assets/cow.obj", &mesh, true);
+    /*if (!loaded)
     {
         fprintf(stderr, "Error loading OBJ file\n");
         return;
     }*/
 
-    load_cube_mesh();
+    //load_cube_mesh();
 }
 
 void process_input(void)
@@ -116,10 +117,9 @@ void update(void)
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
     mesh.rotation.x += 0.01f;
-	mesh.scale.x = 1.0f;
-    //mesh.rotation.y += 0.01f;
-    //mesh.rotation.z += 0.01f;
-    mesh.translation.z = 5.0f;
+    mesh.rotation.y += 0.01f;
+    mesh.rotation.z += 0.01f;
+    mesh.translation.z = 10.0f;
 
     // Create the world matrix to transform each vertex of the mesh
 	brh_mat4 world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
@@ -140,28 +140,25 @@ void update(void)
         for (int j = 0; j < 3; j++)
         {
             brh_vector4 transformed_vertex = vec4_from_vec3(face_vertices[j]);
-
-            
 			mat4_mul_vec4_ref(&world_matrix, &transformed_vertex);
             transformed_vertices[j] = transformed_vertex;
         }
 
         // Backface culling test
+
+        // Check for backface culling
+        /*
+        *     A
+        *    / \
+        *  C-----B
+        */
+        brh_vector3 vecA = vec3_from_vec4(transformed_vertices[0]);
+        brh_vector3 vecB = vec3_from_vec4(transformed_vertices[1]);
+        brh_vector3 vecC = vec3_from_vec4(transformed_vertices[2]);
+		brh_vector3 face_normal = get_face_normal(vecA, vecB, vecC);
+        // Goes from vector a on the face to the camera position
         if (cull_method == CULL_BACKFACE)
         {
-            // Check for backface culling
-            /*
-            *     A
-            *    / \
-            *  C-----B
-            */
-            brh_vector3 vecA = vec3_from_vec4(transformed_vertices[0]);
-            brh_vector3 vecB = vec3_from_vec4(transformed_vertices[1]);
-            brh_vector3 vecC = vec3_from_vec4(transformed_vertices[2]);
-            brh_vector3 vecAB = vec3_subtract(vecB, vecA);
-            brh_vector3 vecAC = vec3_subtract(vecC, vecA);
-            brh_vector3 face_normal = vec3_cross(vecAB, vecAC);
-            // Goes from vector a on the face to the camera position
             brh_vector3 view_vector = vec3_subtract(camera_position, vecA);
             float angle_between = vec3_dot(face_normal, view_vector);
             if (angle_between < 0)
@@ -170,18 +167,21 @@ void update(void)
             }
         }
 
+        // Calculate the triangle's color based on the global light direction
+        uint32_t triangle_color = calculate_flat_shading_color(face_normal, face.color);
+
         brh_vector4 projected_points[3];
         for (int j = 0; j < 3; j++)
         {
             // Project the vertex from 3D World space to 2D screen space
 			projected_points[j] = mat4_project_vec4(&perspective_projection_matrix, &transformed_vertices[j]);
 
-			projected_points[j].x *= (float)window_width / 2.0;
-			projected_points[j].y *= (float)window_height / 2.0;
+			projected_points[j].x *= (float)window_width / 2.0f;
+			projected_points[j].y *= (float)window_height / 2.0f;
 
             // Translate the projected points to the middle of the screen
-            projected_points[j].x += (window_width / 2.0);
-            projected_points[j].y += (window_height / 2.0);
+            projected_points[j].x += (window_width / 2.0f);
+            projected_points[j].y += (window_height / 2.0f);
         }
 
         brh_triangle projected_triangle = {
@@ -190,7 +190,7 @@ void update(void)
                 { projected_points[1].x, projected_points[1].y },
                 { projected_points[2].x, projected_points[2].y },
             },
-            .color = face.color,
+            .color = triangle_color,
 			.avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)
         };
 
