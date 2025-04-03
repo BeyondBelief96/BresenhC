@@ -48,8 +48,8 @@ brh_mat4 mat4_create_rotation_y(float theta)
 	float s = sinf(theta);
 	brh_mat4 result = mat4_identity();
 	result.m[0][0] = c;
-	result.m[0][2] = -s;
-	result.m[2][0] = s;
+	result.m[0][2] = s;
+	result.m[2][0] = -s;
 	result.m[2][2] = c;
 	return result;
 }

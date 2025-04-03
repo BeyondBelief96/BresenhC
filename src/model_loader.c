@@ -39,6 +39,7 @@ bool load_obj(const char* file_path, brh_mesh* mesh, bool isRightHanded)
             }
             if (isRightHanded)
             {
+				// Convert from right-handed to left-handed coordinate system
                 vertex.z = -vertex.z;
             }
             array_push(mesh->vertices, vertex);

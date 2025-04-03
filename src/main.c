@@ -52,7 +52,7 @@ void setup(void)
 	perspective_projection_matrix = mat4_create_perspective_projection(degrees_to_radians(60.0f), (float)window_width / (float)window_height, 0.1f, 100.0f);
 
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-    bool loaded = load_obj("./assets/cow.obj", &mesh, true);
+    bool loaded = load_obj("./assets/f22.obj", &mesh, true);
     /*if (!loaded)
     {
         fprintf(stderr, "Error loading OBJ file\n");
@@ -176,8 +176,10 @@ void update(void)
             // Project the vertex from 3D World space to 2D screen space
 			projected_points[j] = mat4_project_vec4(&perspective_projection_matrix, &transformed_vertices[j]);
 
-			projected_points[j].x *= (float)window_width / 2.0f;
-			projected_points[j].y *= (float)window_height / 2.0f;
+			// Scale the points based on the window dimensions and invert the x and y coordinates to match the screen space
+			projected_points[j].x *= -(float)window_width / 2.0f;
+			projected_points[j].y *= -(float)window_height / 2.0f;
+            
 
             // Translate the projected points to the middle of the screen
             projected_points[j].x += (window_width / 2.0f);
