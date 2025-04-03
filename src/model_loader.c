@@ -17,68 +17,63 @@
 */
 bool load_obj(const char* file_path, brh_mesh* mesh, bool isRightHanded)
 {
-	FILE* file;
-	file = fopen(file_path, "r");
-	if (file == NULL)
-	{
-		fprintf(stderr, "Error opening file: %s\n", file_path);
-		return false;
-	}
+    FILE* file;
+    file = fopen(file_path, "r");
+    if (file == NULL)
+    {
+        fprintf(stderr, "Error opening file: %s\n", file_path);
+        return false;
+    }
 
-	char line[1024];
-
-	while (fgets(line, 1024, file) != NULL)
-	{
-		// For now though, I want to ignore texture coordinates that begin with 'vt'
-		if (strncmp(line, "v ", 2) == 0)
-		{
-			brh_vector3 vertex;
-			errno_t err = sscanf(line, "v %f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
-			if (err != 3)
-			{
-				fprintf(stderr, "Error parsing vertex data\n");
-				return false;
-			}
-
-			if (isRightHanded)
-			{
-				vertex.z = -vertex.z;
-			}
-			array_push(mesh->vertices, vertex);
-		}
-        /*else if (strncmp(line, "vn", 2) == 0)
+    char line[1024];
+    while (fgets(line, 1024, file) != NULL)
+    {
+        if (strncmp(line, "v ", 2) == 0)
         {
-            brh_vector3 normal;
-			errno_t err = sscanf(line, "vn %f %f %f\n", &normal.x, &normal.y, &normal.z);
-			if (err != 3)
-			{
-				fprintf(stderr, "Error parsing normal data\n");
-				return false;
-			}
-            array_push(mesh->normals, normal);
-        }*/
+            brh_vector3 vertex;
+            errno_t err = sscanf(line, "v %f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+            if (err != 3)
+            {
+                fprintf(stderr, "Error parsing vertex data\n");
+                return false;
+            }
+            if (isRightHanded)
+            {
+				// Convert from right-handed to left-handed coordinate system
+                vertex.z = -vertex.z;
+            }
+            array_push(mesh->vertices, vertex);
+        }
         else if (line[0] == 'f')
         {
             brh_face face;
-            // face data is formatted like f 1/1/1 2/2/1 3/3/1, where the first number is the vertex index
-            // and the second number is the texture index and the third number is the normal index
+
+            // First try parsing with slashes (f 1/1/1 2/2/1 3/3/1 format)
             errno_t err = sscanf(line, "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d\n", &face.a, &face.b, &face.c);
+
+            // If that didn't work, try parsing with just spaces (f 1 2 3 format)
             if (err != 3)
             {
-                fprintf(stderr, "Error parsing face data\n");
-                return false;
+                err = sscanf(line, "f %d %d %d\n", &face.a, &face.b, &face.c);
+                if (err != 3)
+                {
+                    fprintf(stderr, "Error parsing face data\n");
+                    return false;
+                }
             }
 
-			if (isRightHanded)
-			{
-				int temp = face.a;
-				face.a = face.c;
-				face.c = temp;
-			}
+            if (isRightHanded)
+            {
+                int temp = face.a;
+                face.a = face.c;
+                face.c = temp;
+				face.color = 0xFFFFFFFF;
+            }
             array_push(mesh->faces, face);
         }
-	}
+    }
 
+    fclose(file);
     return true;
 }
 

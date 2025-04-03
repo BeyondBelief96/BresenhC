@@ -145,6 +145,7 @@
     <ClCompile Include="src\brh_matrix.c" />
     <ClCompile Include="src\brh_vector.c" />
     <ClCompile Include="src\display.c" />
+    <ClCompile Include="src\brh_light.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\math_utils.c" />
     <ClCompile Include="src\brh_mesh.c" />
@@ -157,6 +158,7 @@
     <ClInclude Include="include\brh_vector.h" />
     <ClInclude Include="include\cgltf.h" />
     <ClInclude Include="include\display.h" />
+    <ClInclude Include="include\brh_light.h" />
     <ClInclude Include="include\math_utils.h" />
     <ClInclude Include="include\brh_mesh.h" />
     <ClInclude Include="include\model_loader.h" />

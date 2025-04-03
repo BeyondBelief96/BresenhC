@@ -72,3 +72,16 @@ void draw_triangle_outline(brh_triangle, uint32_t color);
 * @return void
 */
 void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color);
+
+/*
+* @brief Given three points representing a face, calculates the normal of the face.
+* 
+* This function calculates the normal of a face given three points that represent the face. The normal is calculated assuming a left-handed
+* 
+* @param a The first point of the face.
+* @param b The second point of the face.
+* @param c The third point of the face.
+* 
+* @return The normal of the face.
+*/
+brh_vector3 get_face_normal(brh_vector3 a, brh_vector3 b, brh_vector3 c);

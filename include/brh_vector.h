@@ -139,8 +139,6 @@ brh_vector2 vec2_rotate_ref(brh_vector2* v, float angle);
 // Vector3 Structure and Functions
 // ============================================================================
 
-
-
 /**
  * @brief Calculate the magnitude of a 3D vector.
  * @param v The vector.
@@ -173,11 +171,11 @@ brh_vector3 vec3_subtract(brh_vector3 a, brh_vector3 b);
 brh_vector3 vec3_scale(brh_vector3 v, float scalar);
 
 /**
- * @brief Calculate the normal of a 3D vector.
+ * @brief Converts the 3D vector to a unit vector.
  * @param v The vector.
- * @return The normal vector.
+ * @return The normalized vector.
  */
-brh_vector3 vec3_normal(brh_vector3 v);
+brh_vector3 vec3_unit_vector(brh_vector3 v);
 
 /**
  * @brief Normalize a 3D vector.

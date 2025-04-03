@@ -176,7 +176,7 @@ brh_vector3 vec3_cross(brh_vector3 a, brh_vector3 b)
 	return cross_product;
 }
 
-brh_vector3 vec3_normal(brh_vector3 v)
+brh_vector3 vec3_unit_vector(brh_vector3 v)
 {
 	float magnitude = vec3_magnitude(v);
 	brh_vector3 normalized_vector = {
