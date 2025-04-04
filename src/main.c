@@ -52,14 +52,14 @@ void setup(void)
 	perspective_projection_matrix = mat4_create_perspective_projection(degrees_to_radians(60.0f), (float)window_width / (float)window_height, 0.1f, 100.0f);
 
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-    bool loaded = load_obj("./assets/f22.obj", &mesh, true);
+    //bool loaded = load_obj("./assets/f22.obj", &mesh, true);
     /*if (!loaded)
     {
         fprintf(stderr, "Error loading OBJ file\n");
         return;
     }*/
 
-    //load_cube_mesh();
+    load_cube_mesh();
 }
 
 void process_input(void)

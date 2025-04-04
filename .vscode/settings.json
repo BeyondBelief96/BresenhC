@@ -3,6 +3,7 @@
     "*.css": "tailwindcss",
     "**/*.yml": "yaml",
     "display.h": "c",
-    "sdl.h": "c"
+    "sdl.h": "c",
+    "brh_mesh.h": "c"
   }
 }

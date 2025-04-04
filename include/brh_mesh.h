@@ -2,6 +2,7 @@
 
 #include "brh_vector.h"
 #include "brh_triangle.h"
+#include "brh_face.h"
 
 #define N_CUBE_VERTICES 8
 #define N_CUBE_FACES 12

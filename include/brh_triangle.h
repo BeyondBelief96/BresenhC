@@ -4,30 +4,6 @@
 #include "brh_vector.h"
 
 /**
- * @struct brh_face
- * @brief Represents a face of a triangle mesh using vertex indexes.
- *
- * This structure defines a face in a triangle mesh by storing the indexes
- * of its three vertices. Each index corresponds to a vertex in the mesh's
- * vertex array.
- *
- * @var brh_face::a
- * Index of the first vertex of the face.
- *
- * @var brh_face::b
- * Index of the second vertex of the face.
- *
- * @var brh_face::c
- * Index of the third vertex of the face.
- */
-typedef struct {
-    int a;
-    int b;
-    int c;
-    uint32_t color;
-} brh_face;
-
-/**
  * @struct brh_triangle
  * @brief Represents a triangle in 2D space using three points.
  *
@@ -36,10 +12,20 @@ typedef struct {
  * which contains the x and y coordinates of the point.
  *
  * @var brh_triangle::points
- * Array of three `brh_vector2` structures representing the vertices of the triangle.
+ * Array of three `brh_vector2` structures representing the vertices of the triangle
+ * 
+ * @var brh_triangle::texels
+ * Array of three `brh_texel` structures representing the texture coordinates (u,v) for each vertex of the triangle. This is used for texture mapping.
+ * 
+ * @var brh_triangle::color
+ * The color of the triangle, represented as a 32-bit unsigned integer. This can be used for flat shading or solid color rendering.
+ * 
+ * @var brh_triangle::avg_depth
+ * The average depth of the triangle, calculated as the average of the z-coordinates of its three vertices. This can be used for sorting triangles in the painter's algorithm for rendering.
  */
 typedef struct {
     brh_vector2 points[3];
+    brh_texel texels[3];
     uint32_t color;
     float avg_depth;
 } brh_triangle;
@@ -72,16 +58,3 @@ void draw_triangle_outline(brh_triangle, uint32_t color);
 * @return void
 */
 void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color);
-
-/*
-* @brief Given three points representing a face, calculates the normal of the face.
-* 
-* This function calculates the normal of a face given three points that represent the face. The normal is calculated assuming a left-handed
-* 
-* @param a The first point of the face.
-* @param b The second point of the face.
-* @param c The third point of the face.
-* 
-* @return The normal of the face.
-*/
-brh_vector3 get_face_normal(brh_vector3 a, brh_vector3 b, brh_vector3 c);
