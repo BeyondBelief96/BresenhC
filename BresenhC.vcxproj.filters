@@ -45,6 +45,12 @@
     <ClCompile Include="src\brh_light.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\brh_face.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_texture.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\array.h">
@@ -75,6 +81,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\brh_light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_face.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

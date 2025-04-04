@@ -6,7 +6,11 @@
 #define M_PI acos(-1.0)
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
-#define SWAP(x, y) do { typeof(x) SWAP = x; x = y; y = SWAP; } while (0)
+#define SWAP(v1, v2, type) { \
+        type temp = v2;      \
+        v2 = v1;             \
+        v1 = temp;           \
+}
 
 uint32_t gcd(uint32_t a, uint32_t b);
 

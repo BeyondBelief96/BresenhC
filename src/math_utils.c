@@ -42,10 +42,17 @@ float calculate_slope(int x0, int y0, int x1, int y1)
 
 float calculate_inverse_slope(int x0, int y0, int x1, int y1)
 {
-	return (float)(x1 - x0) / (float)(y1 - y0);
+	if (y1 - y0 != 0)
+	{
+		return (float)(x1 - x0) / (float)(y1 - y0);
+	}
+	else
+	{
+		return 0.0f; // Avoid division by zero
+	}
 }
 
 float degrees_to_radians(float degrees)
 {
-	return degrees * ( M_PI / 180.0f);
+	return degrees * ( (float)M_PI / 180.0f);
 }

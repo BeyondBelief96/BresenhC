@@ -18,12 +18,12 @@ uint32_t calculate_flat_shading_color(brh_vector3 normal, uint32_t originalColor
 
     // Extract color components
     uint32_t alpha = (originalColor & 0xFF000000);
-    uint32_t red = (originalColor & 0x00FF0000) * intensity;
-    uint32_t green = (originalColor & 0x0000FF00) * intensity;
-    uint32_t blue = (originalColor & 0x000000FF) * intensity;
+    uint32_t red = (uint32_t)((originalColor & 0x00FF0000) * intensity) & 0x00FF0000;
+    uint32_t green = (uint32_t)((originalColor & 0x0000FF00) * intensity) & 0x0000FF00;
+    uint32_t blue = (uint32_t)((originalColor & 0x000000FF) * intensity) & 0x000000FF;
 
-	// Combine components back into a rgba color
-	uint32_t color = alpha | (red & 0x00FF0000) | (green & 0x0000FF00) | (blue & 0x000000FF);
+    // Combine components back into a rgba color
+    uint32_t color = alpha | red | green | blue;
 
     return color;
 }

@@ -8,6 +8,7 @@
 #include "math_utils.h"
 #include "display.h"
 #include "brh_triangle.h"
+#include "brh_face.h"
 #include "brh_vector.h"
 #include "brh_matrix.h"
 #include "brh_mesh.h"
@@ -51,9 +52,15 @@ void setup(void)
 
 	perspective_projection_matrix = mat4_create_perspective_projection(degrees_to_radians(60.0f), (float)window_width / (float)window_height, 0.1f, 100.0f);
 
+    // Manually load the hard-coded redbrick texture data
+
+   /* mesh_texture_data = (uint32_t*) REDBRICK_TEXTURE;
+    texture_width = 64;
+    texture_height = 64;*/
+
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-    //bool loaded = load_obj("./assets/f22.obj", &mesh, true);
-    /*if (!loaded)
+    /*bool loaded = load_obj("./assets/f22.obj", &mesh, true);
+    if (!loaded)
     {
         fprintf(stderr, "Error loading OBJ file\n");
         return;
@@ -93,6 +100,14 @@ void process_input(void)
         {
             render_method = RENDER_FILL_TRIANGLE_WIREFRAME;
         }
+        if (event.key.key == SDLK_5)
+        {
+            render_method = RENDER_TEXTURED;
+        }
+		if (event.key.key == SDLK_6)
+		{
+			render_method = RENDER_TEXTURED_WIREFRAME;
+		}
         if (event.key.key == SDLK_C)
         {
             cull_method = CULL_BACKFACE;
@@ -101,6 +116,7 @@ void process_input(void)
         {
             cull_method = CULL_NONE;
         }
+
         break;
     }
 }
@@ -187,10 +203,10 @@ void update(void)
         }
 
         brh_triangle projected_triangle = {
-            .points = {
-                { projected_points[0].x, projected_points[0].y },
-                { projected_points[1].x, projected_points[1].y },
-                { projected_points[2].x, projected_points[2].y },
+            .vertices = {
+                {.position = {projected_points[0].x, projected_points[0].y}, .texel = {face.texel_a.u, face.texel_a.v}, .normal = {face_normal.x, face_normal.y, face_normal.z}},
+				{.position = { projected_points[1].x, projected_points[1].y }, .texel = { face.texel_b.u, face.texel_b.v }, .normal = { face_normal.x, face_normal.y, face_normal.z }},
+                {.position = { projected_points[2].x, projected_points[2].y }, .texel = { face.texel_c.u, face.texel_c.v }, .normal = { face_normal.x, face_normal.y, face_normal.z }}
             },
             .color = triangle_color,
 			.avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)
@@ -233,19 +249,26 @@ void render(void)
 
         if (render_method == RENDER_FILL_TRIANGLE || render_method == RENDER_FILL_TRIANGLE_WIREFRAME)
         {
-            draw_filled_triangle((int)triangle.points[0].x, (int)triangle.points[0].y, (int)triangle.points[1].x, (int)triangle.points[1].y, (int)triangle.points[2].x, (int)triangle.points[2].y, triangle.color);
+            draw_filled_triangle(&triangle, triangle.color);
         }
 
-        if (render_method == RENDER_WIREFRAME || render_method == RENDER_WIREFRAME_VERTEX || render_method == RENDER_FILL_TRIANGLE_WIREFRAME)
+        if (render_method == RENDER_TEXTURED || render_method == RENDER_TEXTURED_WIREFRAME)
+        {
+            // Draw textured triangle
+            draw_textured_triangle(&triangle, mesh_texture_data);
+        }
+
+        if (render_method == RENDER_WIREFRAME || render_method == RENDER_WIREFRAME_VERTEX 
+            || render_method == RENDER_FILL_TRIANGLE_WIREFRAME || render_method == RENDER_TEXTURED_WIREFRAME)
         {
             draw_triangle_outline(triangle, 0xFFFFFFFF);
         }
 
         if (render_method == RENDER_WIREFRAME_VERTEX)
         {
-            draw_rect((int)triangle.points[0].x - 3, (int)triangle.points[0].y - 3, 6, 6, 0xFFFF0000);
-            draw_rect((int)triangle.points[1].x - 3, (int)triangle.points[1].y - 3, 6, 6, 0xFFFF0000);
-            draw_rect((int)triangle.points[2].x - 3, (int)triangle.points[2].y - 3, 6, 6, 0xFFFF0000);
+            draw_rect((int)triangle.vertices[0].position.x - 3, (int)triangle.vertices[0].position.y - 3, 6, 6, 0xFFFF0000);
+            draw_rect((int)triangle.vertices[1].position.x - 3, (int)triangle.vertices[1].position.y - 3, 6, 6, 0xFFFF0000);
+            draw_rect((int)triangle.vertices[2].position.x - 3, (int)triangle.vertices[2].position.y - 3, 6, 6, 0xFFFF0000);
         }
     }
 
