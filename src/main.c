@@ -54,12 +54,12 @@ void setup(void)
 
     // Manually load the hard-coded redbrick texture data
 
-   /* mesh_texture_data = (uint32_t*) REDBRICK_TEXTURE;
+    mesh_texture_data = (uint32_t*) REDBRICK_TEXTURE;
     texture_width = 64;
-    texture_height = 64;*/
+    texture_height = 64;
 
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-    /*bool loaded = load_obj("./assets/f22.obj", &mesh, true);
+    /*bool loaded = load_obj("./assets/pumpkin.obj", &mesh, true);
     if (!loaded)
     {
         fprintf(stderr, "Error loading OBJ file\n");
@@ -131,11 +131,10 @@ void update(void)
     }
 
     previous_frame_time = (uint32_t)SDL_GetTicks();
-
     mesh.rotation.x += 0.01f;
     mesh.rotation.y += 0.01f;
     mesh.rotation.z += 0.01f;
-    mesh.translation.z = 10.0f;
+    mesh.translation.z = 5.0f;
 
     // Create the world matrix to transform each vertex of the mesh
 	brh_mat4 world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
@@ -204,9 +203,9 @@ void update(void)
 
         brh_triangle projected_triangle = {
             .vertices = {
-                {.position = {projected_points[0].x, projected_points[0].y}, .texel = {face.texel_a.u, face.texel_a.v}, .normal = {face_normal.x, face_normal.y, face_normal.z}},
-				{.position = { projected_points[1].x, projected_points[1].y }, .texel = { face.texel_b.u, face.texel_b.v }, .normal = { face_normal.x, face_normal.y, face_normal.z }},
-                {.position = { projected_points[2].x, projected_points[2].y }, .texel = { face.texel_c.u, face.texel_c.v }, .normal = { face_normal.x, face_normal.y, face_normal.z }}
+                {.position = projected_points[0], .texel = {face.texel_a.u, face.texel_a.v}, .normal = {face_normal.x, face_normal.y, face_normal.z}},
+				{.position = projected_points[1], .texel = {face.texel_b.u, face.texel_b.v}, .normal = {face_normal.x, face_normal.y, face_normal.z}},
+                {.position = projected_points[2], .texel = {face.texel_c.u, face.texel_c.v}, .normal = {face_normal.x, face_normal.y, face_normal.z}}
             },
             .color = triangle_color,
 			.avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)
@@ -254,14 +253,13 @@ void render(void)
 
         if (render_method == RENDER_TEXTURED || render_method == RENDER_TEXTURED_WIREFRAME)
         {
-            // Draw textured triangle
             draw_textured_triangle(&triangle, mesh_texture_data);
         }
 
         if (render_method == RENDER_WIREFRAME || render_method == RENDER_WIREFRAME_VERTEX 
             || render_method == RENDER_FILL_TRIANGLE_WIREFRAME || render_method == RENDER_TEXTURED_WIREFRAME)
         {
-            draw_triangle_outline(triangle, 0xFFFFFFFF);
+            draw_triangle_outline(&triangle, 0xFFFFFFFF);
         }
 
         if (render_method == RENDER_WIREFRAME_VERTEX)

@@ -1,5 +1,6 @@
 #include "math_utils.h"
 
+const float EPSILON = 1e-6f;
 
 uint32_t gcd(uint32_t a, uint32_t b) {
 	while (b != 0) {
@@ -10,6 +11,7 @@ uint32_t gcd(uint32_t a, uint32_t b) {
 	return a;
 }
 
+
 void swap_int(int* a, int* b)
 {
 	int temp = *a;
@@ -17,26 +19,32 @@ void swap_int(int* a, int* b)
 	*b = temp;
 }
 
-/*
-* @brief Interpolates the x value from a given y value.
-*
-* This function calculates the x value of a point given a y value using linear interpolation.
-*
-* @param x0 The x value of the first point.
-* @param y0 The y value of the first point.
-* @param x1 The x value of the second point.
-* @param y1 The y value of the second point.
-* @param y The y value of the point to interpolate.
-*
-* @return The x value of the interpolated point.
-*/
+void swap_float(float* a, float* b)
+{
+	float temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
 float interpolate_x_from_y(int x0, int y0, int x1, int y1, int y)
 {
 	return x0 + (x1 - x0) * (float)(y - y0) / (float)(y1 - y0);
 }
 
+float interpolate_float(float a, float b, float factor) {
+	if (factor < 0.0f) factor = 0.0f;
+	if (factor > 1.0f) factor = 1.0f;
+	return a + (b - a) * factor;
+}
+
+
 float calculate_slope(int x0, int y0, int x1, int y1)
 {
+	if (x1 - x0 == 0)
+	{
+		return 0.0f; 
+	}
+
 	return (float)(y1 - y0) / (float)(x1 - x0);
 }
 
@@ -48,7 +56,7 @@ float calculate_inverse_slope(int x0, int y0, int x1, int y1)
 	}
 	else
 	{
-		return 0.0f; // Avoid division by zero
+		return 0.0f;
 	}
 }
 

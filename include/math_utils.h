@@ -6,11 +6,8 @@
 #define M_PI acos(-1.0)
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
-#define SWAP(v1, v2, type) { \
-        type temp = v2;      \
-        v2 = v1;             \
-        v1 = temp;           \
-}
+
+extern const float EPSILON;
 
 uint32_t gcd(uint32_t a, uint32_t b);
 
@@ -25,6 +22,31 @@ uint32_t gcd(uint32_t a, uint32_t b);
 * @return void
 */
 void swap_int(int* a, int* b);
+
+/*
+* @brief Swaps the values of two floats.
+* 
+* This function swaps the values of two floats using pointers.
+* 
+* @param a Pointer to the first float.
+* @param b Pointer to the second float.
+* 
+* @return void
+*/
+void swap_float(float* a, float* b);
+
+/**
+* @brief Interpolates between two float values.
+* 
+* This function performs linear interpolation between two float values based on a given factor.
+* 
+* @param a The first float value.
+* @param b The second float value.
+* @param factor The interpolation factor (0.0 to 1.0).
+* 
+* @return The interpolated float value.
+*/
+float interpolate_float(float a, float b, float factor);
 
 /*
 * @brief Interpolates the x value from a given y value.

@@ -281,13 +281,8 @@ brh_vector3 vec3_rotate_z_ref(brh_vector3* v, float angle);
 brh_vector3 vec3_from_vec4(brh_vector4 v);
 
 // ============================================================================
-// Vector4 Structure and Functions
+// Vector4 Functions
 // ============================================================================
-
-/**
- * @brief A structure representing a 4D vector.
- */
-
 
 /**
  * @brief Convert a 3D vector to a 4D vector.

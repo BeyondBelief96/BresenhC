@@ -1,53 +1,47 @@
 #pragma once
 
 #include <stdint.h>
-#include "brh_vector.h"
-#include "brh_texture.h"
+#include "brh_vector.h" 
+#include "brh_texture.h" 
 
 /**
-* @struct brh_vertex
-* @brief Represents a vertex in 3D space with position, texture coordinates, and normal vector.
-*
-* This structure defines a vertex in 3D space by storing its position, texture coordinates,
-* and normal vector. The position is represented by a `brh_vector2` structure, which contains
-* the x and y coordinates of the vertex. The texture coordinates are represented by a `brh_texel`
-* structure, which contains the u and v coordinates for texture mapping. The normal vector is
-* represented by a `brh_vector3` structure, which contains the x, y, and z components of the normal.
-*
-* @var brh_vertex::position
-* A `brh_vector2` structure representing the position of the vertex in 3D space.
-*
-* @var brh_vertex::texel
-* A `brh_texel` structure representing the texture coordinates (u,v) for the vertex. This is used for texture mapping.
-*
-* @var brh_vertex::normal
-* A `brh_vector3` structure representing the normal vector for the vertex. This is used for lighting calculations.
-*/
-typedef struct brh_vertex {
-    brh_vector2 position;
-	brh_texel texel;
-    brh_vector3 normal;
+ * @struct brh_vertex
+ * @brief Represents a vertex with position, texture coordinates, and normal.
+ *
+ * Defines a vertex combining its 2D screen-space position (after projection),
+ * its texture coordinates (u,v) for mapping, and its original 3D normal vector
+ * (potentially used for lighting, although not directly in 2D drawing functions).
+ *
+ * @var brh_vertex::position
+ * A `brh_vector4` representing the 2D screen-space position of the vertex along with the z and w components after perspective projection.
+ * @var brh_vertex::texel
+ * A `brh_texel` representing the (u, v) texture coordinates for the vertex.
+ * @var brh_vertex::normal
+ * A `brh_vector3` representing the original normal vector (often used pre-projection).
+ */
+typedef struct {
+    brh_vector4 position;
+    brh_texel texel;
+    brh_vector3 normal; // Keep for potential future use or data consistency
+    // Add float inv_w; here if/when implementing perspective correction
 } brh_vertex;
 
 /**
  * @struct brh_triangle
- * @brief Represents a triangle in 2D space using three points.
+ * @brief Represents a triangle defined by three vertices, color, and depth.
  *
- * This structure defines a triangle by storing the coordinates of its
- * three vertices. Each vertex is represented by a `brh_vector2` structure,
- * which contains the x and y coordinates of the point.
+ * Stores the three vertices that define the triangle, each containing position,
+ * texture coordinates, and normal. Also includes a color for solid rendering
+ * and an average depth for sorting (e.g., Painter's Algorithm).
  *
- * @var brh_triangle::points
- * Array of three `brh_vector2` structures representing the vertices of the triangle
- * 
- * @var brh_triangle::texels
- * Array of three `brh_texel` structures representing the texture coordinates (u,v) for each vertex of the triangle. This is used for texture mapping.
- * 
+ * @var brh_triangle::vertices
+ * Array of three `brh_vertex` structures defining the triangle's corners.
+ * Each vertex holds its position, texel coords, and normal.
  * @var brh_triangle::color
- * The color of the triangle, represented as a 32-bit unsigned integer. This can be used for flat shading or solid color rendering.
- * 
+ * A 32-bit color value (e.g., ARGB) for flat shading or wireframe.
  * @var brh_triangle::avg_depth
- * The average depth of the triangle, calculated as the average of the z-coordinates of its three vertices. This can be used for sorting triangles in the painter's algorithm for rendering.
+ * The average depth (z-value, typically pre-projection or 1/w post-projection)
+ * used for visibility sorting.
  */
 typedef struct {
     brh_vertex vertices[3];
@@ -55,29 +49,56 @@ typedef struct {
     float avg_depth;
 } brh_triangle;
 
-/*
-* @brief Draws the wireframe of a triangle.
-* 
-* This function draws the wireframe of a triangle using the Bresenham's line algorithm.
-* 
-* @param triangle The triangle to draw.
-* @param color The color of the triangle.
-* 
-* @return void
-*/
-void draw_triangle_outline(brh_triangle, uint32_t color);
+/* Function Prototypes */
 
-/*
-* @brief Draws a filled triangle.
-* 
-* This function draws a filled triangle using the scanline algorithm.
-* 
-* @param triangle The triangle to draw.
-* @param color The color of the triangle.
-* 
-* @return void
-*/
+/**
+ * @brief Draws the wireframe outline of a triangle.
+ *
+ * Uses the DDA line algorithm (or potentially Bresenham) to draw the three
+ * edges connecting the triangle's vertices.
+ *
+ * @param triangle Pointer to the constant triangle data to draw. Using a pointer
+ *                 is more efficient than passing the struct by value.
+ * @param color The 32-bit color (e.g., ARGB) for the outline.
+ */
+void draw_triangle_outline(const brh_triangle* triangle, uint32_t color);
+
+/**
+ * @brief Draws a solid-colored filled triangle.
+ *
+ * Uses a scanline rasterization algorithm (flat-top/flat-bottom decomposition)
+ * to fill the triangle's area with a single color.
+ *
+ * @param triangle Pointer to the triangle data. Coordinates might be modified
+ *                 internally for sorting, hence not const.
+ * @param color The 32-bit color (e.g., ARGB) to fill the triangle with.
+ */
 void draw_filled_triangle(brh_triangle* triangle, uint32_t color);
 
-
+/**
+ * @brief Draws a textured triangle.
+ *
+ * Uses scanline rasterization with barycentric interpolation of texture
+ * coordinates to map a texture onto the triangle's area.
+ * Note: Basic implementation uses linear interpolation, not perspective-correct.
+ *
+ * @param triangle Pointer to the triangle data. Coordinates might be modified
+ *                 internally for sorting, hence not const.
+ * @param texture Pointer to the loaded texture data (array of uint32_t colors).
+ */
 void draw_textured_triangle(brh_triangle* triangle, uint32_t* texture);
+
+/**
+ * @brief Calculates the barycentric coordinates of a point P relative to a triangle ABC.
+ *
+ * Determines the weights (alpha, beta, gamma) such that P = alpha*A + beta*B + gamma*C.
+ * These weights are used for interpolation across the triangle surface.
+ * Returns {0, 0, 0} for degenerate triangles.
+ *
+ * @param p The 2D point (screen coordinates) to find coordinates for.
+ * @param a The 2D position of the first triangle vertex.
+ * @param b The 2D position of the second triangle vertex.
+ * @param c The 2D position of the third triangle vertex.
+ * @return A `brh_vector3` containing the barycentric weights {alpha, beta, gamma}.
+ */
+brh_vector3 calculate_barycentic_coordinates(brh_vector2 p, brh_vector2 a, brh_vector2 b, brh_vector2 c);

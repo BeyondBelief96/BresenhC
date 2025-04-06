@@ -61,7 +61,7 @@ void destroy_window(void);
  *
  * @return void
  */
-extern void draw_pixel(uint32_t x, uint32_t y, uint32_t color);
+void draw_pixel(uint32_t x, uint32_t y, uint32_t color);
 
 /**
  * @brief Draws a rectangle on the screen at the specified coordinates with the specified color.
