@@ -131,9 +131,7 @@ void update(void)
     }
 
     previous_frame_time = (uint32_t)SDL_GetTicks();
-    mesh.rotation.x += 0.01f;
     mesh.rotation.y += 0.01f;
-    mesh.rotation.z += 0.01f;
     mesh.translation.z = 5.0f;
 
     brh_mat4 world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
