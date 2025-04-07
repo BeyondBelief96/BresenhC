@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdbool.h>
+#include "upng.h"
+
 typedef struct brh_texel{
   float u;
   float v;
@@ -10,5 +13,8 @@ extern int texture_width;
 extern int texture_height;
 extern uint32_t* mesh_texture_data;
 
+extern upng_t* png_texture;
 extern const uint8_t REDBRICK_TEXTURE[];
+
+bool load_png_texture_data(const char* file_path);
 

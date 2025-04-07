@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include "upng.h"
 #include "math_utils.h"
 #include "display.h"
 #include "brh_triangle.h"
@@ -53,20 +54,26 @@ void setup(void)
 	perspective_projection_matrix = mat4_create_perspective_projection(degrees_to_radians(60.0f), (float)window_width / (float)window_height, 0.1f, 100.0f);
 
     // Manually load the hard-coded redbrick texture data
-
-    mesh_texture_data = (uint32_t*) REDBRICK_TEXTURE;
+    /*mesh_texture_data = (uint32_t*) REDBRICK_TEXTURE;
     texture_width = 64;
-    texture_height = 64;
+    texture_height = 64;*/
 
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-    /*bool loaded = load_obj("./assets/pumpkin.obj", &mesh, true);
+    bool loaded = load_obj("./assets/cube.obj", &mesh, true);
     if (!loaded)
     {
         fprintf(stderr, "Error loading OBJ file\n");
         return;
-    }*/
+    }
 
-    load_cube_mesh();
+    //load_cube_mesh();
+
+    bool texture_loaded = load_png_texture_data("./assets/cube.png");
+    if (!texture_loaded)
+    {
+        fprintf(stderr, "Error loading PNG texture\n");
+        return;
+    }
 }
 
 void process_input(void)
@@ -289,6 +296,7 @@ void render(void)
 
 void free_resources(void)
 {
+    upng_free(png_texture);
     free(color_buffer);
     array_free(mesh.vertices);
     array_free(mesh.faces);
