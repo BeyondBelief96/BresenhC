@@ -9,8 +9,8 @@
 #include "display.h"
 
 // Helper function to swap perspective attributes
-void swap_perspective_attribs(brh_perspective_attribs* a, brh_perspective_attribs* b) {
-    brh_perspective_attribs temp = *a;
+void swap_perspective_attribs(brh_texture_persp_attribs* a, brh_texture_persp_attribs* b) {
+    brh_texture_persp_attribs temp = *a;
     *a = *b;
     *b = temp;
 }
@@ -58,9 +58,9 @@ void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint
 // (x1,y1)-----(x2,y2) pa1, pa2
 ///////////////////////////////////////////////////////////////////////////////
 void texture_flat_bottom_triangle_perspective(
-    int x0, int y0, brh_perspective_attribs pa0, // Top vertex data
-    int x1, int y1, brh_perspective_attribs pa1, // Bottom-left vertex data
-    int x2, int y2, brh_perspective_attribs pa2, // Bottom-right vertex data
+    int x0, int y0, brh_texture_persp_attribs pa0, // Top vertex data
+    int x1, int y1, brh_texture_persp_attribs pa1, // Bottom-left vertex data
+    int x2, int y2, brh_texture_persp_attribs pa2, // Bottom-right vertex data
     uint32_t* texture)                          // Texture data
 {
     // Calculate the inverse screen-space slopes (dx/dy) of the two non-horizontal edges.
@@ -93,13 +93,13 @@ void texture_flat_bottom_triangle_perspective(
         // whereas raw u, v, and w are not.
 
         // Attributes for the starting point (left edge) of the current scanline
-        brh_perspective_attribs current_attrib_start;
+        brh_texture_persp_attribs current_attrib_start;
         current_attrib_start.inv_w = interpolate_float(pa0.inv_w, pa1.inv_w, t);
         current_attrib_start.u_over_w = interpolate_float(pa0.u_over_w, pa1.u_over_w, t);
         current_attrib_start.v_over_w = interpolate_float(pa0.v_over_w, pa1.v_over_w, t);
 
         // Attributes for the ending point (right edge) of the current scanline
-        brh_perspective_attribs current_attrib_end;
+        brh_texture_persp_attribs current_attrib_end;
         current_attrib_end.inv_w = interpolate_float(pa0.inv_w, pa2.inv_w, t);
         current_attrib_end.u_over_w = interpolate_float(pa0.u_over_w, pa2.u_over_w, t);
         current_attrib_end.v_over_w = interpolate_float(pa0.v_over_w, pa2.v_over_w, t);
@@ -128,7 +128,7 @@ void texture_flat_bottom_triangle_perspective(
         }
 
         // Initialize the interpolator for the first pixel of the scanline.
-        brh_perspective_attribs current_attrib = current_attrib_start;
+        brh_texture_persp_attribs current_attrib = current_attrib_start;
 
         // --- Pixel Loop ---
         // Iterate horizontally across the scanline from the left edge to the right edge.
@@ -201,9 +201,9 @@ void texture_flat_bottom_triangle_perspective(
 //        (x2,y2) pa2
 ///////////////////////////////////////////////////////////////////////////////
 void texture_flat_top_triangle_perspective(
-    int x0, int y0, brh_perspective_attribs pa0, // Top-left vertex data
-    int x1, int y1, brh_perspective_attribs pa1, // Top-right vertex data
-    int x2, int y2, brh_perspective_attribs pa2, // Bottom vertex data
+    int x0, int y0, brh_texture_persp_attribs pa0, // Top-left vertex data
+    int x1, int y1, brh_texture_persp_attribs pa1, // Top-right vertex data
+    int x2, int y2, brh_texture_persp_attribs pa2, // Bottom vertex data
     uint32_t* texture)                          // Texture data
 {
     // Calculate the inverse screen-space slopes (dx/dy) of the two non-horizontal edges,
@@ -234,13 +234,13 @@ void texture_flat_top_triangle_perspective(
         // This prevents accumulation of floating-point errors along the edges.
 
         // Attributes for the starting point (left edge 2->0) of the current scanline
-        brh_perspective_attribs current_attrib_start;
+        brh_texture_persp_attribs current_attrib_start;
         current_attrib_start.inv_w = interpolate_float(pa2.inv_w, pa0.inv_w, t);
         current_attrib_start.u_over_w = interpolate_float(pa2.u_over_w, pa0.u_over_w, t);
         current_attrib_start.v_over_w = interpolate_float(pa2.v_over_w, pa0.v_over_w, t);
 
         // Attributes for the ending point (right edge 2->1) of the current scanline
-        brh_perspective_attribs current_attrib_end;
+        brh_texture_persp_attribs current_attrib_end;
         current_attrib_end.inv_w = interpolate_float(pa2.inv_w, pa1.inv_w, t);
         current_attrib_end.u_over_w = interpolate_float(pa2.u_over_w, pa1.u_over_w, t);
         current_attrib_end.v_over_w = interpolate_float(pa2.v_over_w, pa1.v_over_w, t);
@@ -268,7 +268,7 @@ void texture_flat_top_triangle_perspective(
         }
 
         // Initialize the interpolator for the first pixel of the scanline.
-        brh_perspective_attribs current_attrib = current_attrib_start;
+        brh_texture_persp_attribs current_attrib = current_attrib_start;
 
         // --- Pixel Loop ---
         // Iterate horizontally across the scanline.
@@ -390,14 +390,14 @@ void draw_textured_triangle(brh_triangle* triangle, uint32_t* texture)
     float inv_w2 = triangle->vertices[2].inv_w;
     brh_texel t2 = triangle->vertices[2].texel;
 
-    brh_perspective_attribs pa0, pa1, pa2;
+    brh_texture_persp_attribs pa0, pa1, pa2;
     if (fabsf(inv_w0) < EPSILON || fabsf(inv_w1) < EPSILON || fabsf(inv_w2) < EPSILON)
     {
         return; 
     }
-    pa0 = (brh_perspective_attribs){ .u_over_w = t0.u * inv_w0, .v_over_w = t0.v * inv_w0, .inv_w = inv_w0 };
-    pa1 = (brh_perspective_attribs){ .u_over_w = t1.u * inv_w1, .v_over_w = t1.v * inv_w1, .inv_w = inv_w1 };
-    pa2 = (brh_perspective_attribs){ .u_over_w = t2.u * inv_w2, .v_over_w = t2.v * inv_w2, .inv_w = inv_w2 };
+    pa0 = (brh_texture_persp_attribs){ .u_over_w = t0.u * inv_w0, .v_over_w = t0.v * inv_w0, .inv_w = inv_w0 };
+    pa1 = (brh_texture_persp_attribs){ .u_over_w = t1.u * inv_w1, .v_over_w = t1.v * inv_w1, .inv_w = inv_w1 };
+    pa2 = (brh_texture_persp_attribs){ .u_over_w = t2.u * inv_w2, .v_over_w = t2.v * inv_w2, .inv_w = inv_w2 };
 
     if (y0 > y1)
     { 
@@ -441,7 +441,7 @@ void draw_textured_triangle(brh_triangle* triangle, uint32_t* texture)
         if (fabsf(y_delta_total) < EPSILON) return;
         float lerp_factor_y = (float)(y1 - y0) / y_delta_total;
 
-        brh_perspective_attribs pam; // Midpoint perspective attributes
+        brh_texture_persp_attribs pam; // Midpoint perspective attributes
         pam.inv_w = interpolate_float(pa0.inv_w, pa2.inv_w, lerp_factor_y);
         if (fabsf(pam.inv_w) < EPSILON) { return; } // Skip if midpoint unusable
         pam.u_over_w = interpolate_float(pa0.u_over_w, pa2.u_over_w, lerp_factor_y);

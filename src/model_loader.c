@@ -1,4 +1,8 @@
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
+
+
 #define CGLTF_IMPLEMENTATION
 #include <stdio.h>
 #include <string.h>

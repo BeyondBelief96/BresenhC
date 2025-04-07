@@ -4,12 +4,12 @@
 #include "brh_vector.h" 
 #include "brh_texture.h" 
 
-// Structure to hold perspective-correct attributes for interpolation
+// Structure to hold perspective-correct attributes for perspective-correct texture mapping
 typedef struct {
     float u_over_w;
     float v_over_w;
     float inv_w; // 1/w
-} brh_perspective_attribs;
+} brh_texture_persp_attribs;
 
 /**
  * @struct brh_vertex
