@@ -136,82 +136,93 @@ void update(void)
     mesh.rotation.z += 0.01f;
     mesh.translation.z = 5.0f;
 
-    // Create the world matrix to transform each vertex of the mesh
-	brh_mat4 world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
-
-    // Initialize the array of triangles to render
+    brh_mat4 world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
     triangles_to_render = NULL;
-
     int num_faces = array_length(mesh.faces);
+
     for (int i = 0; i < num_faces; i++)
     {
         brh_face face = mesh.faces[i];
-        brh_vector3 face_vertices[3];
-        face_vertices[0] = mesh.vertices[face.a - 1];
-        face_vertices[1] = mesh.vertices[face.b - 1];
-        face_vertices[2] = mesh.vertices[face.c - 1];
+        brh_vector3 face_vertices_model[3]; // Model space vertices
+        brh_vector4 face_vertices_world[3]; // World space vertices (needed for depth sort)
+        brh_vertex triangle_vertices[3];   // Final vertices for the triangle struct
+        brh_texel face_texels[3];          // Texture coordinates
 
-        brh_vector4 transformed_vertices[3];
+        face_vertices_model[0] = mesh.vertices[face.a - 1];
+        face_vertices_model[1] = mesh.vertices[face.b - 1];
+        face_vertices_model[2] = mesh.vertices[face.c - 1];
+
+        face_texels[0] = face.texel_a;
+        face_texels[1] = face.texel_b;
+        face_texels[2] = face.texel_c;
+
+        bool skip_triangle = false; // Flag to skip if w is near zero
+
         for (int j = 0; j < 3; j++)
         {
-            brh_vector4 transformed_vertex = vec4_from_vec3(face_vertices[j]);
-			mat4_mul_vec4_ref(&world_matrix, &transformed_vertex);
-            transformed_vertices[j] = transformed_vertex;
+            // --- World Transformation ---
+            brh_vector4 world_vertex = vec4_from_vec3(face_vertices_model[j]);
+            mat4_mul_vec4_ref(&world_matrix, &world_vertex);
+            face_vertices_world[j] = world_vertex; // Store for depth sorting
+
+            // --- Projection to Clip Space ---
+            brh_vector4 clip_space_vertex = mat4_mul_vec4(&perspective_projection_matrix, world_vertex);
+
+            // --- Store Inverse W (Crucial!) ---
+            // Store 1/w for perspective correction BEFORE division
+            float original_w = clip_space_vertex.w;
+            triangle_vertices[j].inv_w = 1.0f / original_w;
+
+            // --- Perspective Division (Clip Space -> NDC) ---
+            brh_vector4 ndc_vertex = clip_space_vertex;
+            ndc_vertex.x *= triangle_vertices[j].inv_w; // x' = x/w
+            ndc_vertex.y *= triangle_vertices[j].inv_w; // y' = y/w
+            ndc_vertex.z *= triangle_vertices[j].inv_w; // z' = z/w (normalized depth)
+
+            // --- Viewport Transformation (NDC -> Screen Space) ---
+            // Convert x,y from [-1, 1] to [0, window_width/window_height]
+            // Invert Y axis: (1 - ndc.y) maps [-1, 1] to [2, 0], then multiply by 0.5 * height.
+            triangle_vertices[j].position.x = (ndc_vertex.x + 1.0f) * 0.5f * (float)window_width;
+            triangle_vertices[j].position.y = (1.0f - ndc_vertex.y) * 0.5f * (float)window_height; // Y is inverted
+            triangle_vertices[j].position.z = face_vertices_world[j].z; // Use original world Z for simple depth sorting
+            // Or use ndc_vertex.z for Z-buffer: triangle_vertices[j].position.z = ndc_vertex.z;
+            triangle_vertices[j].position.w = original_w; // Store original W for potential future use (or debugging)
+
+            // --- Assign Texel ---
+            triangle_vertices[j].texel = face_texels[j];
         }
 
-        // Backface culling test
+        // --- Backface Culling (using world space vertices) ---
+        brh_vector3 vecA_world = vec3_from_vec4(face_vertices_world[0]);
+        brh_vector3 vecB_world = vec3_from_vec4(face_vertices_world[1]);
+        brh_vector3 vecC_world = vec3_from_vec4(face_vertices_world[2]);
+        brh_vector3 face_normal = get_face_normal(vecA_world, vecB_world, vecC_world);
 
-        // Check for backface culling
-        /*
-        *     A
-        *    / \
-        *  C-----B
-        */
-        brh_vector3 vecA = vec3_from_vec4(transformed_vertices[0]);
-        brh_vector3 vecB = vec3_from_vec4(transformed_vertices[1]);
-        brh_vector3 vecC = vec3_from_vec4(transformed_vertices[2]);
-		brh_vector3 face_normal = get_face_normal(vecA, vecB, vecC);
-        // Goes from vector a on the face to the camera position
         if (cull_method == CULL_BACKFACE)
         {
-            brh_vector3 view_vector = vec3_subtract(camera_position, vecA);
-            float angle_between = vec3_dot(face_normal, view_vector);
-            if (angle_between < 0)
+            // View vector from a vertex on the face towards the camera origin (in world space)
+            brh_vector3 view_vector = vec3_subtract(camera_position, vecA_world);
+            float angle_dot_product = vec3_dot(face_normal, view_vector);
+            if (angle_dot_product < 0)
             {
-                continue;
+                continue; // Skip back-facing triangle
             }
         }
 
-        // Calculate the triangle's color based on the global light direction
+        // Assign the calculated normal and color to all vertices for flat shading
         uint32_t triangle_color = calculate_flat_shading_color(face_normal, face.color);
+        triangle_vertices[0].normal = face_normal;
+        triangle_vertices[1].normal = face_normal;
+        triangle_vertices[2].normal = face_normal;
 
-        brh_vector4 projected_points[3];
-        for (int j = 0; j < 3; j++)
-        {
-            // Project the vertex from 3D World space to 2D screen space
-			projected_points[j] = mat4_project_vec4(&perspective_projection_matrix, &transformed_vertices[j]);
 
-			// Scale the points based on the window dimensions and invert the x and y coordinates to match the screen space
-			projected_points[j].x *= -(float)window_width / 2.0f;
-			projected_points[j].y *= -(float)window_height / 2.0f;
-            
-
-            // Translate the projected points to the middle of the screen
-            projected_points[j].x += (window_width / 2.0f);
-            projected_points[j].y += (window_height / 2.0f);
-        }
-
+        // --- Assemble and Store Triangle ---
         brh_triangle projected_triangle = {
-            .vertices = {
-                {.position = projected_points[0], .texel = {face.texel_a.u, face.texel_a.v}, .normal = {face_normal.x, face_normal.y, face_normal.z}},
-				{.position = projected_points[1], .texel = {face.texel_b.u, face.texel_b.v}, .normal = {face_normal.x, face_normal.y, face_normal.z}},
-                {.position = projected_points[2], .texel = {face.texel_c.u, face.texel_c.v}, .normal = {face_normal.x, face_normal.y, face_normal.z}}
-            },
+            .vertices = { triangle_vertices[0], triangle_vertices[1], triangle_vertices[2] },
             .color = triangle_color,
-			.avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z)
+            .avg_depth = (face_vertices_world[0].z + face_vertices_world[1].z + face_vertices_world[2].z) / 3.0f // Use world Z avg
         };
 
-        // Save each projected triangle for each face
         array_push(triangles_to_render, projected_triangle);
     }
 

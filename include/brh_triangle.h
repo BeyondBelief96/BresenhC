@@ -4,26 +4,38 @@
 #include "brh_vector.h" 
 #include "brh_texture.h" 
 
+// Structure to hold perspective-correct attributes for interpolation
+typedef struct {
+    float u_over_w;
+    float v_over_w;
+    float inv_w; // 1/w
+} brh_perspective_attribs;
+
 /**
  * @struct brh_vertex
- * @brief Represents a vertex with position, texture coordinates, and normal.
+ * @brief Represents a vertex with position, texture coordinates, normal, and perspective attribute.
  *
- * Defines a vertex combining its 2D screen-space position (after projection),
- * its texture coordinates (u,v) for mapping, and its original 3D normal vector
- * (potentially used for lighting, although not directly in 2D drawing functions).
+ * Defines a vertex combining its 2D screen-space position (after projection and division),
+ * its texture coordinates (u,v) for mapping, its original 3D normal vector,
+ * and the inverse of its clip-space W component (1/w) for perspective correction.
  *
  * @var brh_vertex::position
- * A `brh_vector4` representing the 2D screen-space position of the vertex along with the z and w components after perspective projection.
+ * A `brh_vector4` storing the final screen-space X and Y. The Z component might store
+ * NDC Z (for depth buffering) or original world Z (for painter's algorithm).
+ * The W component here is often not directly used after perspective division but might retain the original clip-space W for reference.
  * @var brh_vertex::texel
  * A `brh_texel` representing the (u, v) texture coordinates for the vertex.
  * @var brh_vertex::normal
  * A `brh_vector3` representing the original normal vector (often used pre-projection).
+ * @var brh_vertex::inv_w
+ * The inverse (1/w) of the vertex's W component in *clip space* (before perspective division).
+ * This is crucial for perspective-correct interpolation.
  */
 typedef struct {
-    brh_vector4 position;
+    brh_vector4 position; // Holds final screen X, Y. Z/W usage depends on depth/sorting method.
     brh_texel texel;
-    brh_vector3 normal; // Keep for potential future use or data consistency
-    // Add float inv_w; here if/when implementing perspective correction
+    brh_vector3 normal;
+    float inv_w;       // Inverse W (1/w) from clip space
 } brh_vertex;
 
 /**

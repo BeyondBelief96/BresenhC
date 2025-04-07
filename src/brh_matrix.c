@@ -167,17 +167,5 @@ brh_mat4 mat4_create_perspective_projection(float fov, float aspect_ratio, float
 	return result;
 }
 
-brh_vector4 mat4_project_vec4(const brh_mat4* m, brh_vector4* v)
-{
-	mat4_mul_vec4_ref(m, v);
-	if (v->w != 0.0f)
-	{
-		v->x /= v->w;
-		v->y /= v->w;
-		v->z /= v->w;
-	}
-	return *v;
-}
-
 
 

@@ -139,27 +139,6 @@ brh_mat4 mat4_create_world_matrix(brh_vector3 translation, brh_vector3 rotation,
 brh_mat4 mat4_create_perspective_projection(float fov, float aspect_ratio, float near, float far);
 
 /**
- * @brief Multiplies a 4x4 perspective projection matrix by a 4D vector and projects the result using perspective division.
- *
- * This function first multiplies the 4D vector by the 4x4 perspective projection matrix.
- * Then, it performs perspective division by dividing the x, y, and z components of the vector by its w component.
- * This operation transforms the vector from clip space to normalized device coordinates (NDC).
- *
- * @param m Pointer to the 4x4 projection matrix.
- * @param v Pointer to the 4D vector.
- * @return The resulting 4D vector after perspective projection.
- *
- * @code
- * // Example usage:
- * brh_mat4 projection_matrix = ...; // Define your projection matrix
- * brh_vector4 vector = ...; // Define your 4D vector
- * brh_vector4 projected_vector = mat4_project_vec4(&projection_matrix, &vector);
- * @endcode
- */
-brh_vector4 mat4_project_vec4(const brh_mat4* m, brh_vector4* v);
-
-
-/**
  * @brief Multiplies a 4x4 matrix by a 4D vector.
  * 
  * @param m Pointer to the 4x4 matrix.
