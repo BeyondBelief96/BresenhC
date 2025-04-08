@@ -68,7 +68,7 @@ void setup(void)
 
     //load_cube_mesh();
 
-    bool texture_loaded = load_png_texture_data("./assets/tnt.png");
+    bool texture_loaded = load_png_texture_data("./assets/cube.png");
     if (!texture_loaded)
     {
         fprintf(stderr, "Error loading PNG texture\n");
@@ -287,7 +287,7 @@ void update(void)
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
     // Update model transformations
-    mesh.rotation.y += 0.01f;
+    mesh.rotation.x += 0.01f;
     mesh.translation.z = 5.0f;
 
     // Generate world matrix
