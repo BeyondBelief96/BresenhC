@@ -160,8 +160,10 @@ void texture_flat_bottom_triangle_perspective(
             // coordinates within the texture dimensions.
             // Use floorf and add a small epsilon to handle potential floating-point
             // inaccuracies near integer boundaries.
-            int tex_x = (int)floorf(interp_u * texture_width + EPSILON);
-            int tex_y = (int)floorf(interp_v * texture_height + EPSILON);
+            // We invert the V coordinate because the texture coordinate system from most image texture has (0, 0) at the 
+            // top left corner.
+            int tex_x = (int)floorf(1.0f - interp_u * texture_width + EPSILON);
+            int tex_y = (int)floorf((1.0f - interp_v) * texture_height + EPSILON);
 
             // Wrap the texture coordinates if they fall outside the [0, width-1] or [0, height-1] range.
             // The double modulo ensures the result is always positive.
@@ -289,8 +291,10 @@ void texture_flat_top_triangle_perspective(
 
             // --- Texture Sampling ---
             // Map normalized UV to texture space coordinates.
-            int tex_x = (int)floorf(interp_u * texture_width + EPSILON);
-            int tex_y = (int)floorf(interp_v * texture_height + EPSILON);
+            // We invert the V coordinate because the texture coordinate system from most image texture has (0, 0) at the 
+            // top left corner.
+            int tex_x = (int)floorf(1.0f - interp_u * texture_width + EPSILON);
+            int tex_y = (int)floorf((1.0f - interp_v) * texture_height + EPSILON);
 
             // Wrap coordinates.
             tex_x = ((tex_x % texture_width) + texture_width) % texture_width;
@@ -327,10 +331,8 @@ void draw_triangle_outline(const brh_triangle* triangle, uint32_t color)
 ///////////////////////////////////////////////////////////////////////////////
 // Draw a filled triangle with the flat-top/flat-bottom method (Solid Color)
 ///////////////////////////////////////////////////////////////////////////////
-// ... (draw_filled_triangle remains unchanged) ...
 void draw_filled_triangle(brh_triangle* triangle, uint32_t color)
 {
-    // ... (existing implementation is fine) ...
     int x0 = (int)triangle->vertices[0].position.x;
     int y0 = (int)triangle->vertices[0].position.y;
     int x1 = (int)triangle->vertices[1].position.x;

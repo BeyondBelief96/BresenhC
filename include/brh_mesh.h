@@ -7,35 +7,38 @@
 #define N_CUBE_VERTICES 8
 #define N_CUBE_FACES 12
 
-extern brh_vector3 cube_vertices[N_CUBE_VERTICES];
-extern brh_face cube_faces[N_CUBE_FACES];
-
 /**
  * @struct brh_mesh
- * @brief Represents a 3D mesh composed of vertices and faces.
+ * @brief Represents a 3D mesh composed of vertices, texture coordinates, and faces.
  *
- * This structure defines a 3D mesh by storing an array of vertices and an array of faces.
- * Each vertex is represented by a `brh_vector3` structure, which contains the x, y, and z
- * coordinates of the point. Each face is represented by a `brh_face` structure, which
- * contains the indexes of the vertices that form the face.
- *
+ * Stores arrays for vertex positions, texture coordinates (UVs), and faces.
+ * Also includes transformation properties.
+ * 
  * @var brh_mesh::vertices
- * Pointer to an array of `brh_vector3` structures representing the vertices of the mesh.
- *
+ * Dynamic array of `brh_vector3` structures representing vertex positions.
+ * 
+ * @var brh_mesh::texcoords
+ * Dynamic array of `brh_texel` structures representing texture coordinates (UVs).
+ * 
+ * @var brh_vector3::normals
+ * Dynamic array of `brh_vector3` structures representing vertex normals.
+ * 
  * @var brh_mesh::faces
- * Pointer to an array of `brh_face` structures representing the faces of the mesh.
+ * Dynamic array of `brh_face` structures defining triangles and linking vertex/texcoord indices.
  * 
  * @var brh_mesh::rotation
- * Defines the rotation of the mesh in the 3D space using Euler angles.
+ * Mesh rotation (Euler angles).
  * 
  * @var brh_mesh::scale
- * Defines the scale of the mesh in the 3D space.
+ * Mesh scale.
  * 
  * @var brh_mesh::translation
- * Defines the translation of the mesh in the 3D space.
+ * Mesh translation.
  */
 typedef struct {
 	brh_vector3* vertices;
+	brh_texel* texcoords;
+	brh_vector3* normals;
 	brh_face* faces;
 	brh_vector3 scale;
 	brh_vector3 rotation;
@@ -43,6 +46,3 @@ typedef struct {
 } brh_mesh;
 
 extern brh_mesh mesh;
-
-void load_cube_mesh(void);
-

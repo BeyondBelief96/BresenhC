@@ -4,39 +4,37 @@
 #include "brh_vector.h"
 #include "brh_texture.h"
 
+
 /**
  * @struct brh_face
- * @brief Represents a face of a triangle mesh using vertex indexes.
+ * @brief Represents a face of a triangle mesh using vertex and texture coord indices.
  *
- * This structure defines a face in a triangle mesh by storing the indexes
- * of its three vertices. Each index corresponds to a vertex in the mesh's
- * vertex array.
+ * Stores 1-based indices into the mesh's vertices and texcoords arrays.
+ * Also stores a color (e.g., for flat shading or material).
  *
- * @var brh_face::a
- * Index of the first vertex of the face.
- *
- * @var brh_face::b
- * Index of the second vertex of the face.
- *
- * @var brh_face::c
- * Index of the third vertex of the face.
+ * @var brh_face::a, brh_face::b, brh_face::c
+ * 1-based indices of the vertex positions in the mesh's `vertices` array.
  * 
- * @var brh_face::texel_a
- * Texture coordinates (u,v) for the first vertex of the face. This is used for texture mapping.
+ * @var brh_face::a_vt, brh_face::b_vt, brh_face::c_vt
+ * 1-based indices of the texture coordinates in the mesh's `texcoords` array.
+ * A value of 0 indicates no texture coordinate was specified for that vertex in the OBJ.
  * 
- * @var brh_face::texel_b
- * Texture coordinates (u,v) for the second vertex of the face. This is used for texture mapping.
+ * @var brh_face::a_vn, brh_face::b_vn, brh_face::c_vn
+ * 1-based indices of the vertex normals in the mesh's `normals` array.
  * 
- * @var brh_face::texel_c
- * Texture coordinates (u,v) for the third vertex of the face. This is used for texture mapping.
+ * @var brh_face::color
+ * Color associated with the face (e.g., from material or default).
  */
 typedef struct {
   int a;
   int b;
   int c;
-  brh_texel texel_a; 
-  brh_texel texel_b; 
-  brh_texel texel_c; 
+  int a_vt; 
+  int b_vt; 
+  int c_vt; 
+  int a_vn;
+  int b_vn;
+  int c_vn;
   uint32_t color;
 } brh_face;
 
