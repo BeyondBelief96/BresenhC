@@ -33,6 +33,7 @@ void setup(void)
 
     // Allocate back buffers
     color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
+	z_buffer = (float*)malloc(sizeof(float) * window_width * window_height);
     assert(color_buffer != NULL); // Ensure malloc succeeded
     if (!color_buffer)
     {
@@ -151,14 +152,14 @@ static bool transform_face_vertices(brh_vector3 face_vertices_model[3],
         face_vertices_world[j] = world_vertex;
 
         // --- Projection to Clip Space ---
-        brh_vector4 clip_space_vertex = mat4_mul_vec4(&perspective_projection_matrix, world_vertex);
+        brh_vector4 projected_vertex = mat4_mul_vec4(&perspective_projection_matrix, world_vertex);
 
         // --- Store Inverse W for perspective correction ---
-        float original_w = clip_space_vertex.w;
+        float original_w = projected_vertex.w;
         triangle_vertices[j].inv_w = 1.0f / original_w;
 
         // --- Perspective Division (Clip Space -> NDC) ---
-        brh_vector4 ndc_vertex = clip_space_vertex;
+        brh_vector4 ndc_vertex = projected_vertex;
         ndc_vertex.x *= triangle_vertices[j].inv_w;
         ndc_vertex.y *= triangle_vertices[j].inv_w;
         ndc_vertex.z *= triangle_vertices[j].inv_w;
@@ -254,29 +255,6 @@ void process_mesh_faces(brh_mesh* mesh, brh_mat4 world_matrix)
     }
 }
 
-/**
- * @brief Sort triangles by depth for rendering
- *
- * @param triangles Array of triangles to sort
- */
-void sort_triangles(brh_triangle* triangles)
-{
-    if (triangles == NULL) return;
-
-    int num_triangles = array_length(triangles);
-
-    // Simple bubble sort (can be replaced with a faster algorithm)
-    for (int i = 0; i < num_triangles; i++) {
-        for (int j = i; j < num_triangles; j++) {
-            if (triangles[i].avg_depth < triangles[j].avg_depth) {
-                brh_triangle temp = triangles[i];
-                triangles[i] = triangles[j];
-                triangles[j] = temp;
-            }
-        }
-    }
-}
-
 void update(void)
 {
     // Frame timing management
@@ -287,7 +265,9 @@ void update(void)
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
     // Update model transformations
+    mesh.rotation.x += 0.01f;
     mesh.rotation.y += 0.01f;
+    mesh.rotation.z += 0.01f;
     mesh.translation.z = 5.0f;
 
     // Generate world matrix
@@ -298,9 +278,6 @@ void update(void)
 
     // Process each face in the mesh
     process_mesh_faces(&mesh, world_matrix);
-
-    // Sort triangles for rendering (painter's algorithm)
-    sort_triangles(triangles_to_render);
 }
 
 void render(void)
@@ -342,16 +319,20 @@ void render(void)
     array_free(triangles_to_render);
 
     render_color_buffer();
+    clear_z_buffer();
 
     SDL_RenderPresent(renderer);
 }
 
 void free_resources(void)
 {
-    upng_free(png_texture);
     free(color_buffer);
+    upng_free(png_texture);
+    free(z_buffer);
     array_free(mesh.vertices);
     array_free(mesh.faces);
+    array_free(mesh.texcoords);
+    array_free(mesh.normals);
 }
 
 int main(int argc, char* argv[])

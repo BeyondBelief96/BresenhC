@@ -27,6 +27,7 @@ extern SDL_Renderer* renderer;
 
 extern uint32_t* color_buffer;
 extern SDL_Texture* color_buffer_texture;
+extern float* z_buffer;
 
 extern uint32_t window_width;
 extern uint32_t window_height;
@@ -139,3 +140,13 @@ void render_color_buffer(void);
  * @return void
  */
 void clear_color_buffer(uint32_t color);
+
+/*
+* @brief Clears the Z-buffer.
+ *
+ * This function resets the Z-buffer to its initial state, preparing it for the next
+ * frame of rendering.
+ *
+ * @return void
+*/
+void clear_z_buffer(void);

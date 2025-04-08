@@ -11,6 +11,7 @@ SDL_Renderer* renderer = NULL;
 
 uint32_t* color_buffer = NULL;
 SDL_Texture* color_buffer_texture = NULL;
+float* z_buffer = NULL;
 
 uint32_t window_width = 800;
 uint32_t window_height = 600;
@@ -65,6 +66,23 @@ void clear_color_buffer(uint32_t color)
 		{
 			color_buffer[(window_width * y) + x] = color;
 		}
+	}
+}
+
+/**
+ * @brief Clears the Z-buffer, setting all depth values to represent maximum distance.
+ *
+ * This function resets the Z-buffer, typically before rendering a new frame.
+ * We initialize with 0.0f because we will store 1/w, and larger 1/w means closer.
+ */
+void clear_z_buffer(void)
+{
+	if (!z_buffer) return; // Safety check
+	const int num_pixels = window_width * window_height;
+	for (int i = 0; i < num_pixels; i++)
+	{
+		z_buffer[i] = 0.0f; // Initialize to "infinitely far" (smallest possible 1/w)
+		// Using FLT_MIN might also work, but 0.0 is common.
 	}
 }
 

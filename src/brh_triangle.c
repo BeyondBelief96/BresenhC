@@ -132,52 +132,38 @@ void texture_flat_bottom_triangle_perspective(
 
         // --- Pixel Loop ---
         // Iterate horizontally across the scanline from the left edge to the right edge.
-        for (int x = current_x_start_scr; x <= current_x_end_scr; x++) {
-            // Safety check: If 1/w is close to zero, w is very large (approaching infinity),
-            // which happens near the camera's near plane or view frustum edges.
-            // Trying to recover u/v would be numerically unstable or result in division by zero.
-            // Proper clipping should ideally handle this before rasterization.
-            if (fabsf(current_attrib.inv_w) < EPSILON) {
-                // Skip this pixel but still increment attributes to proceed.
-                current_attrib.inv_w += inv_w_step;
-                current_attrib.u_over_w += u_over_w_step;
-                current_attrib.v_over_w += v_over_w_step;
-                continue;
+        for (int x = current_x_start_scr; x <= current_x_end_scr; x++)
+        {
+            const float current_inv_w = current_attrib.inv_w; // Get 1/w for this pixel
+
+            // Z-Buffer Check & Perspective Safety Check
+            // Check if 1/w is valid AND if it's closer than what's in the buffer
+            // Larger 1/w means closer to the camera.
+            if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+            {
+                // --- Perspective Correction ---
+                const float current_w = 1.0f / current_inv_w;
+                const float current_u = current_attrib.u_over_w * current_w;
+                const float current_v = current_attrib.v_over_w * current_w;
+
+                // --- Texture Sampling ---
+                // Invert V coordinate during sampling if needed
+                int tex_x = (int)floorf(current_u * texture_width + EPSILON);
+                int tex_y = (int)floorf((1.0f - current_v) * texture_height + EPSILON); // Assuming V inversion needed here
+
+                tex_x = ((tex_x % texture_width) + texture_width) % texture_width;
+                tex_y = ((tex_y % texture_height) + texture_height) % texture_height;
+
+                const uint32_t texel_color = texture[tex_y * texture_width + tex_x];
+
+                // --- Draw Pixel ---
+                draw_pixel(x, y, texel_color);
+
+                // --- Update Z-Buffer ---
+                z_buffer[(window_width * y) + x] = current_inv_w; // Store 1/w
             }
 
-            // --- Perspective Correction ---
-            // Recover the interpolated perspective-correct W for this pixel.
-            float w = 1.0f / current_attrib.inv_w;
-            // Recover the interpolated perspective-correct U and V coordinates by multiplying
-            // the interpolated (u/w) and (v/w) by the recovered w.
-            // Correct U = (U/W) * W
-            // Correct V = (V/W) * W
-            float interp_u = current_attrib.u_over_w * w;
-            float interp_v = current_attrib.v_over_w * w;
-
-            // --- Texture Sampling ---
-            // Map the normalized texture coordinates (interp_u, interp_v) to integer
-            // coordinates within the texture dimensions.
-            // Use floorf and add a small epsilon to handle potential floating-point
-            // inaccuracies near integer boundaries.
-            // We invert the V coordinate because the texture coordinate system from most image texture has (0, 0) at the 
-            // top left corner.
-            int tex_x = (int)floorf(interp_u * texture_width + EPSILON);
-            int tex_y = (int)floorf(1.0f - interp_v * texture_height + EPSILON);
-
-            // Wrap the texture coordinates if they fall outside the [0, width-1] or [0, height-1] range.
-            // The double modulo ensures the result is always positive.
-            tex_x = ((tex_x % texture_width) + texture_width) % texture_width;
-            tex_y = ((tex_y % texture_height) + texture_height) % texture_height;
-
-            // Get the color from the texture at the calculated coordinates.
-            uint32_t texel_color = texture[tex_y * texture_width + tex_x];
-
-            // --- Draw Pixel ---
-            draw_pixel(x, y, texel_color);
-
-            // --- Increment Horizontal Interpolators ---
-            // Move the perspective attributes to the next pixel's position using the pre-calculated steps.
+            // --- Increment Horizontal Interpolators (always happens) ---
             current_attrib.inv_w += inv_w_step;
             current_attrib.u_over_w += u_over_w_step;
             current_attrib.v_over_w += v_over_w_step;
@@ -274,39 +260,38 @@ void texture_flat_top_triangle_perspective(
 
         // --- Pixel Loop ---
         // Iterate horizontally across the scanline.
-        for (int x = current_x_start_scr; x <= current_x_end_scr; x++) {
-            // Safety check for 1/w near zero.
-            if (fabsf(current_attrib.inv_w) < EPSILON) {
-                current_attrib.inv_w += inv_w_step;
-                current_attrib.u_over_w += u_over_w_step;
-                current_attrib.v_over_w += v_over_w_step;
-                continue;
+        for (int x = current_x_start_scr; x <= current_x_end_scr; x++)
+        {
+            const float current_inv_w = current_attrib.inv_w; // Get 1/w for this pixel
+
+            // Z-Buffer Check & Perspective Safety Check
+            // Check if 1/w is valid AND if it's closer than what's in the buffer
+            // Larger 1/w means closer to the camera.
+            if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+            {
+                // --- Perspective Correction ---
+                const float current_w = 1.0f / current_inv_w;
+                const float current_u = current_attrib.u_over_w * current_w;
+                const float current_v = current_attrib.v_over_w * current_w;
+
+                // --- Texture Sampling ---
+                // Invert V coordinate during sampling if needed
+                int tex_x = (int)floorf(current_u * texture_width + EPSILON);
+                int tex_y = (int)floorf((1.0f - current_v) * texture_height + EPSILON); // Assuming V inversion needed here
+
+                tex_x = ((tex_x % texture_width) + texture_width) % texture_width;
+                tex_y = ((tex_y % texture_height) + texture_height) % texture_height;
+
+                const uint32_t texel_color = texture[tex_y * texture_width + tex_x];
+
+                // --- Draw Pixel ---
+                draw_pixel(x, y, texel_color);
+
+                // --- Update Z-Buffer ---
+                z_buffer[(window_width * y) + x] = current_inv_w; // Store 1/w
             }
 
-            // --- Perspective Correction ---
-            // Recover W, U, V for this pixel.
-            float w = 1.0f / current_attrib.inv_w;
-            float interp_u = current_attrib.u_over_w * w;
-            float interp_v = current_attrib.v_over_w * w;
-
-            // --- Texture Sampling ---
-            // Map normalized UV to texture space coordinates.
-            // We invert the V coordinate because the texture coordinate system from most image texture has (0, 0) at the 
-            // top left corner.
-            int tex_x = (int)floorf(interp_u * texture_width + EPSILON);
-            int tex_y = (int)floorf(1.0f - interp_v * texture_height + EPSILON);
-
-            // Wrap coordinates.
-            tex_x = ((tex_x % texture_width) + texture_width) % texture_width;
-            tex_y = ((tex_y % texture_height) + texture_height) % texture_height;
-
-            // Sample texture.
-            uint32_t texel_color = texture[tex_y * texture_width + tex_x];
-
-            // --- Draw Pixel ---
-            draw_pixel(x, y, texel_color);
-
-            // --- Increment Horizontal Interpolators ---
+            // --- Increment Horizontal Interpolators (always happens) ---
             current_attrib.inv_w += inv_w_step;
             current_attrib.u_over_w += u_over_w_step;
             current_attrib.v_over_w += v_over_w_step;
