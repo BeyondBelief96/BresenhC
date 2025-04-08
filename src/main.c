@@ -244,11 +244,9 @@ void process_mesh_faces(brh_mesh* mesh, brh_mat4 world_matrix)
         triangle_vertices[2].normal = face_normal;
 
         // Create and store the triangle
-        float avg_depth = (face_vertices_world[0].z + face_vertices_world[1].z + face_vertices_world[2].z) / 3.0f;
         brh_triangle projected_triangle = {
             .vertices = { triangle_vertices[0], triangle_vertices[1], triangle_vertices[2] },
             .color = triangle_color,
-            .avg_depth = avg_depth
         };
 
         array_push(triangles_to_render, projected_triangle);

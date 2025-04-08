@@ -9,7 +9,7 @@ typedef struct {
     float u_over_w;
     float v_over_w;
     float inv_w; // 1/w
-} brh_texture_persp_attribs;
+} brh_perspective_attribs;
 
 /**
  * @struct brh_vertex
@@ -58,7 +58,6 @@ typedef struct {
 typedef struct {
     brh_vertex vertices[3];
     uint32_t color;
-    float avg_depth;
 } brh_triangle;
 
 /* Function Prototypes */

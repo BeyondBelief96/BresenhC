@@ -93,21 +93,6 @@ void draw_rect(int x, int y, int width, int height, uint32_t color);
 void draw_line_dda(int x0, int y0, int x1, int y1, uint32_t color);
 
 /**
- * @brief Draws a horizontal line.
- *
- * This function draws a horizontal line assuming the same y coordinate.
- * x0 does not have to be less than x1. The function will handle that.
- *
- * @param x0 The x coordinate of the starting point.
- * @param x1 The x coordinate of the ending point.
- * @param y The y coordinate of the line.
- * @param color The color of the line.
- *
- * @return void
- */
-void draw_horizontal_line(int x0, int x1, int y, uint32_t color);
-
-/**
  * @brief Draws a grid on the screen.
  *
  * This function draws a grid on the screen with the specified cell size and color.

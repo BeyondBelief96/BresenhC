@@ -154,16 +154,3 @@ void draw_line_dda(int x0, int y0, int x1, int y1, uint32_t color)
 		current_y += increment_y;
 	}
 }
-
-void draw_horizontal_line(int x0, int x1, int y, uint32_t color)
-{
-	if (x0 > x1)
-	{
-		swap_int(&x0, &x1);
-	}
-
-	for (int x = x0; x <= x1; x++)
-	{
-		draw_pixel(x, y, color);
-	}
-}
