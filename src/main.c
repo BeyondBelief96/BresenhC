@@ -59,7 +59,7 @@ void setup(void)
     texture_height = 64;*/
 
     //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-    bool loaded = load_obj("./assets/cube.obj", &mesh, true);
+    bool loaded = load_obj("./assets/f117.obj", &mesh, true);
     if (!loaded)
     {
         fprintf(stderr, "Error loading OBJ file\n");
@@ -68,7 +68,7 @@ void setup(void)
 
     //load_cube_mesh();
 
-    bool texture_loaded = load_png_texture_data("./assets/cube.png");
+    bool texture_loaded = load_png_texture_data("./assets/f117.png");
     if (!texture_loaded)
     {
         fprintf(stderr, "Error loading PNG texture\n");
@@ -287,7 +287,7 @@ void update(void)
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
     // Update model transformations
-    mesh.rotation.x += 0.01f;
+    mesh.rotation.y += 0.01f;
     mesh.translation.z = 5.0f;
 
     // Generate world matrix
