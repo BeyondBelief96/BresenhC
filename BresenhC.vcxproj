@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -141,7 +141,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="include\brh_camera.h" />
     <ClCompile Include="src\array.c" />
+    <ClCompile Include="src\brh_camera.c" />
     <ClCompile Include="src\brh_face.c" />
     <ClCompile Include="src\brh_matrix.c" />
     <ClCompile Include="src\brh_texture.c" />

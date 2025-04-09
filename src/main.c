@@ -16,6 +16,7 @@
 #include "array.h"
 #include "model_loader.h"
 #include "brh_light.h"
+#include "brh_camera.h"
 
 uint32_t previous_frame_time = 0;
 
@@ -26,7 +27,8 @@ int triangles_to_render_count = 0; // Store the number of triangles *this frame*
 bool is_running = true;
 uint32_t cell_size;
 
-brh_vector3 camera_position = { .x = 0, .y = 0, .z = 0 };
+brh_mat4 world_matrix;
+brh_mat4 camera_matrix;
 brh_mat4 perspective_projection_matrix;
 
 void setup(void)
@@ -179,8 +181,7 @@ void process_input(void)
 static bool transform_face_vertices(brh_vector3 face_vertices_model[3],
     brh_vector4 face_vertices_world[3],
     brh_vertex triangle_vertices[3],
-    brh_texel face_texels[3],
-    brh_mat4 world_matrix)
+    brh_texel face_texels[3])
 {
     for (int j = 0; j < 3; j++) {
         // --- World Transformation ---
@@ -188,8 +189,12 @@ static bool transform_face_vertices(brh_vector3 face_vertices_model[3],
         mat4_mul_vec4_ref(&world_matrix, &world_vertex);
         face_vertices_world[j] = world_vertex;
 
+		// --- Camera Transformation ---
+		brh_vector4 camera_vertex = face_vertices_world[j];
+		mat4_mul_vec4_ref(&camera_matrix, &camera_vertex);
+
         // --- Projection to Clip Space ---
-        brh_vector4 projected_vertex = mat4_mul_vec4(&perspective_projection_matrix, world_vertex);
+        brh_vector4 projected_vertex = mat4_mul_vec4(&perspective_projection_matrix, camera_vertex);
 
         // --- Store Inverse W for perspective correction ---
         float original_w = projected_vertex.w;
@@ -218,7 +223,9 @@ static bool transform_face_vertices(brh_vector3 face_vertices_model[3],
         brh_vector3 vecC_world = vec3_from_vec4(face_vertices_world[2]);
         brh_vector3 face_normal = get_face_normal(vecA_world, vecB_world, vecC_world);
 
-        brh_vector3 view_vector = vec3_subtract(camera_position, vecA_world);
+		// Calculate the view vector from the camera to the face (assuming camera is at origin)
+		brh_vector3 origin = { 0.0f, 0.0f, 0.0f };
+        brh_vector3 view_vector = vec3_subtract(origin, vecA_world);
         float angle_dot_product = vec3_dot(face_normal, view_vector);
 
         if (angle_dot_product < 0) {
@@ -235,7 +242,7 @@ static bool transform_face_vertices(brh_vector3 face_vertices_model[3],
  * @param mesh The mesh to process
  * @param world_matrix The world transformation matrix
  */
-void process_mesh_faces(brh_mesh* mesh, brh_mat4 world_matrix)
+void process_mesh_faces(brh_mesh* mesh)
 {
     int num_faces = array_length(mesh->faces);
     int num_texcoords = array_length(mesh->texcoords);
@@ -261,8 +268,7 @@ void process_mesh_faces(brh_mesh* mesh, brh_mat4 world_matrix)
 
         // Transform vertices and check backface culling
         if (!transform_face_vertices(face_vertices_model, face_vertices_world,
-            triangle_vertices, face_texels,
-            world_matrix)) {
+            triangle_vertices, face_texels)) {
             continue; // Skip this face (culled)
         }
 
@@ -312,14 +318,21 @@ void update(void)
     mesh.rotation.z += 0.005f;
     mesh.translation.z = 5.0f;
 
-    // Generate world matrix
-    brh_mat4 world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
+    // Test changing camera position per frame
+    lookat_camera.position.x += 0.01f;
+
+    // Generate world matrix and camera matrix for this frame
+    world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
+
+    brh_vector3 target_point = { 0.0f, 0.0f, 10.0f };
+    brh_vector3 up = { 0.0f, 1.0f, 0.0f };
+	camera_matrix = create_look_at_camera_matrix(lookat_camera.position, target_point, up);
 
     // Reset triangle *count* for this frame
     triangles_to_render_count = 0;
 
     // Process each face in the mesh, filling the pre-allocated buffer
-    process_mesh_faces(&mesh, world_matrix);
+    process_mesh_faces(&mesh);
 }
 
 void render(void)
