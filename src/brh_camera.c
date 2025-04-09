@@ -2,7 +2,7 @@
 
 brh_look_at_camera lookat_camera = {
 	.position = { 0.0f, 0.0f, 0.0f },
-	.direction = { 0.0f, 0.0f, 1.0f }
+	.target = { 0.0f, 0.0f, 1.0f }
 };
 
 

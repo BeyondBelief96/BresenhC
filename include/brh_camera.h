@@ -12,8 +12,32 @@
  */
 typedef struct {
     brh_vector3 position;  // The position of the camera in 3D space.
-    brh_vector3 direction; // The direction the camera is facing.
+    brh_vector3 target; // The target the camera is looking at.
 } brh_look_at_camera;
+
+typedef struct {
+	brh_vector3 position; // The position of the camera in 3D space.
+	brh_vector3 direction;   // The direction the camera is facing.
+	brh_vector3 forward_velocity; // The forward velocity of the camera.
+	float yaw_angle; // The yaw angle of the camera.
+} brh_fps_camera;
+
+/*
+* @brief Represents a mouse-controlled camera for 3D rendering.
+* 
+* This structure defines a camera that can be controlled using mouse movements.
+* It includes the camera's position, direction, and rotation angles.
+* The camera can be used to render 3D objects in a 3D space and can be manipulated
+* using mouse input to change its orientation and position.
+*/
+typedef struct {
+	brh_vector3 position; // The position of the camera in 3D space.
+	brh_vector3 direction; // The direction the camera is facing.
+	float yaw_angle; // The yaw angle of the camera.
+	float pitch_angle; // The pitch angle of the camera.
+	float speed; // The speed of the camera movement.
+	float sensitivity; // The sensitivity of the mouse movement.
+} brh_mouse_camera;
 
 /**
  * @brief Creates a view matrix for a camera that looks at a specific point in 3D space.
