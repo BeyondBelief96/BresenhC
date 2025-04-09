@@ -242,7 +242,7 @@ void texture_flat_bottom_triangle_perspective(
     int x0, int y0, brh_perspective_attribs pa0, // Top vertex data
     int x1, int y1, brh_perspective_attribs pa1, // Bottom-left vertex data
     int x2, int y2, brh_perspective_attribs pa2, // Bottom-right vertex data
-    uint32_t* texture)                          // Texture data
+    const uint32_t* texture)                          // Texture data
 {
     // Calculate the inverse screen-space slopes (dx/dy) of the two non-horizontal edges.
     // These tell us how much the screen X coordinate changes for each step in Y.
@@ -373,7 +373,7 @@ void texture_flat_top_triangle_perspective(
     int x0, int y0, brh_perspective_attribs pa0, // Top-left vertex data
     int x1, int y1, brh_perspective_attribs pa1, // Top-right vertex data
     int x2, int y2, brh_perspective_attribs pa2, // Bottom vertex data
-    uint32_t* texture)                          // Texture data
+    const uint32_t* texture)                          // Texture data
 {
     // Calculate the inverse screen-space slopes (dx/dy) of the two non-horizontal edges,
     // starting from the bottom vertex (x2, y2).

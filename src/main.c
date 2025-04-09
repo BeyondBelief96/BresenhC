@@ -18,7 +18,10 @@
 #include "brh_light.h"
 
 uint32_t previous_frame_time = 0;
+
 brh_triangle* triangles_to_render = NULL;
+int triangles_to_render_capacity = 0; // Store the allocated size
+int triangles_to_render_count = 0; // Store the number of triangles *this frame*
 
 bool is_running = true;
 uint32_t cell_size;
@@ -28,53 +31,87 @@ brh_mat4 perspective_projection_matrix;
 
 void setup(void)
 {
-    render_method = RENDER_WIREFRAME;
+    render_method = RENDER_TEXTURED; // Default to textured for testing
     cull_method = CULL_BACKFACE;
 
-    // Allocate back buffers
+    // --- Allocate color and z-buffers ---
     color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
-	z_buffer = (float*)malloc(sizeof(float) * window_width * window_height);
-    assert(color_buffer != NULL); // Ensure malloc succeeded
-    if (!color_buffer)
-    {
-        assert(color_buffer);
-        fprintf(stderr, "Color buffer could not be created!");
-        return;
+    z_buffer = (float*)malloc(sizeof(float) * window_width * window_height);
+    assert(color_buffer != NULL);
+    assert(z_buffer != NULL);
+    if (!color_buffer || !z_buffer) {
+        fprintf(stderr, "Color or Z buffer could not be created!\n");
+        free(color_buffer);
+        free(z_buffer);
+        return; 
     }
 
-    // Create color buffer texture
+    // --- Create color buffer texture ---
     color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, window_width, window_height);
-    if (!color_buffer_texture)
-    {
+    if (!color_buffer_texture) {
         fprintf(stderr, "Color buffer texture could not be created! SDL_Error: %s\n", SDL_GetError());
+        free(color_buffer);
+        free(z_buffer);
         return;
     }
-    
-    cell_size = gcd(window_width, window_height);\
 
-	perspective_projection_matrix = mat4_create_perspective_projection(degrees_to_radians(60.0f), (float)window_width / (float)window_height, 0.1f, 100.0f);
+    cell_size = gcd(window_width, window_height);
 
-    // Manually load the hard-coded redbrick texture data
-    /*mesh_texture_data = (uint32_t*) REDBRICK_TEXTURE;
-    texture_width = 64;
-    texture_height = 64;*/
+    // --- Setup Projection Matrix ---
+    perspective_projection_matrix = mat4_create_perspective_projection(degrees_to_radians(60.0f), (float)window_width / (float)window_height, 0.1f, 100.0f);
 
-    //bool loaded = load_gltf("./assets/supermarine_spitfire/scene.gltf", &mesh);
-    bool loaded = load_obj("./assets/f117.obj", &mesh, true);
-    if (!loaded)
-    {
+    // --- Load Mesh ---
+    bool loaded = load_obj("./assets/drone.obj", &mesh, true);
+    if (!loaded) {
         fprintf(stderr, "Error loading OBJ file\n");
+        SDL_DestroyTexture(color_buffer_texture);
+        free(color_buffer);
+        free(z_buffer);
         return;
     }
 
-    //load_cube_mesh();
+    // --- Determine triangle buffer capacity and allocate ---
+    int num_faces = array_length(mesh.faces);
+    if (num_faces <= 0) {
+        fprintf(stderr, "Error: Mesh loaded with zero faces.\n");
+        SDL_DestroyTexture(color_buffer_texture);
+        free(color_buffer);
+        free(z_buffer);
+        array_free(mesh.vertices);
+        array_free(mesh.texcoords);
+        array_free(mesh.faces);
+        return;
+    }
+    triangles_to_render_capacity = num_faces; // Max possible triangles is num faces
+    triangles_to_render = (brh_triangle*)malloc(sizeof(brh_triangle) * triangles_to_render_capacity);
+    if (triangles_to_render == NULL) {
+        fprintf(stderr, "Error: Failed to allocate memory for triangle render buffer.\n");
+        SDL_DestroyTexture(color_buffer_texture);
+        free(color_buffer);
+        free(z_buffer);
+        array_free(mesh.vertices);
+        array_free(mesh.texcoords);
+        array_free(mesh.faces);
+        return;
+    }
 
-    bool texture_loaded = load_png_texture_data("./assets/f117.png");
-    if (!texture_loaded)
-    {
+    // --- Load Texture ---
+    bool texture_loaded = load_png_texture_data("./assets/drone.png");
+    if (!texture_loaded) {
         fprintf(stderr, "Error loading PNG texture\n");
+        // Need cleanup...
+        free(triangles_to_render); // Free the newly allocated buffer
+        SDL_DestroyTexture(color_buffer_texture);
+        free(color_buffer);
+        free(z_buffer);
+        array_free(mesh.vertices);
+        array_free(mesh.texcoords);
+        array_free(mesh.faces);
         return;
     }
+
+    // Initialize the triangle count for the first frame
+    triangles_to_render_count = 0;
 }
 
 void process_input(void)
@@ -249,7 +286,14 @@ void process_mesh_faces(brh_mesh* mesh, brh_mat4 world_matrix)
             .color = triangle_color,
         };
 
-        array_push(triangles_to_render, projected_triangle);
+        if (triangles_to_render_count < triangles_to_render_capacity)
+        {
+			triangles_to_render[triangles_to_render_count++] = projected_triangle;
+        }
+        else
+        {
+			fprintf(stderr, "Error: Triangle buffer overflow. Increase capacity.\n");   
+        }
     }
 }
 
@@ -263,18 +307,18 @@ void update(void)
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
     // Update model transformations
-    mesh.rotation.x += 0.01f;
-    mesh.rotation.y += 0.01f;
-    mesh.rotation.z += 0.01f;
+    mesh.rotation.x += 0.005f;
+    mesh.rotation.y += 0.005f;
+    mesh.rotation.z += 0.005f;
     mesh.translation.z = 5.0f;
 
     // Generate world matrix
     brh_mat4 world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
 
-    // Reset triangle buffer
-    triangles_to_render = NULL;
+    // Reset triangle *count* for this frame
+    triangles_to_render_count = 0;
 
-    // Process each face in the mesh
+    // Process each face in the mesh, filling the pre-allocated buffer
     process_mesh_faces(&mesh, world_matrix);
 }
 
@@ -283,38 +327,33 @@ void render(void)
     clear_color_buffer(0xFF000000);
     draw_grid(cell_size, 0xFF333333);
 
-    int num_triangles = array_length(triangles_to_render);
-
-    for (int i = 0; i < num_triangles; i++)
+    for (int i = 0; i < triangles_to_render_count; i++)
     {
-        brh_triangle triangle = triangles_to_render[i];
+        brh_triangle* triangle = &triangles_to_render[i];
 
         if (render_method == RENDER_FILL_TRIANGLE || render_method == RENDER_FILL_TRIANGLE_WIREFRAME)
         {
-            draw_filled_triangle(&triangle, triangle.color);
+            draw_filled_triangle(triangle, triangle->color);
         }
 
         if (render_method == RENDER_TEXTURED || render_method == RENDER_TEXTURED_WIREFRAME)
         {
-            draw_textured_triangle(&triangle, mesh_texture_data);
+            draw_textured_triangle(triangle, mesh_texture_data);
         }
 
         if (render_method == RENDER_WIREFRAME || render_method == RENDER_WIREFRAME_VERTEX 
             || render_method == RENDER_FILL_TRIANGLE_WIREFRAME || render_method == RENDER_TEXTURED_WIREFRAME)
         {
-            draw_triangle_outline(&triangle, 0xFFFFFFFF);
+            draw_triangle_outline(triangle, 0xFFFFFFFF);
         }
 
         if (render_method == RENDER_WIREFRAME_VERTEX)
         {
-            draw_rect((int)triangle.vertices[0].position.x - 3, (int)triangle.vertices[0].position.y - 3, 6, 6, 0xFFFF0000);
-            draw_rect((int)triangle.vertices[1].position.x - 3, (int)triangle.vertices[1].position.y - 3, 6, 6, 0xFFFF0000);
-            draw_rect((int)triangle.vertices[2].position.x - 3, (int)triangle.vertices[2].position.y - 3, 6, 6, 0xFFFF0000);
+            draw_rect((int)triangle->vertices[0].position.x - 3, (int)triangle->vertices[0].position.y - 3, 6, 6, 0xFFFF0000);
+            draw_rect((int)triangle->vertices[1].position.x - 3, (int)triangle->vertices[1].position.y - 3, 6, 6, 0xFFFF0000);
+            draw_rect((int)triangle->vertices[2].position.x - 3, (int)triangle->vertices[2].position.y - 3, 6, 6, 0xFFFF0000);
         }
     }
-
-    // Clear the array of triangles to render every frame loop
-    array_free(triangles_to_render);
 
     render_color_buffer();
     clear_z_buffer();

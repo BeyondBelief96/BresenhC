@@ -4,9 +4,6 @@
 #include "brh_triangle.h"
 #include "brh_face.h"
 
-#define N_CUBE_VERTICES 8
-#define N_CUBE_FACES 12
-
 /**
  * @struct brh_mesh
  * @brief Represents a 3D mesh composed of vertices, texture coordinates, and faces.
