@@ -54,6 +54,15 @@
     <ClCompile Include="src\upng.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="include\brh_camera.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_camera.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_clipping.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\array.h">
@@ -93,6 +102,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\upng.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_clipping.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -32,6 +32,16 @@ typedef struct {
 } brh_vector4;
 
 /**
+ * @brief Creates a `brh_vector2` instance with the specified x and y components.
+ *
+ * @param x The x component of the vector.
+ * @param y The y component of the vector.
+ *
+ * @return A `brh_vector2` instance with the specified components.
+ */
+brh_vector2 vec2_create(float x, float y);
+
+/**
  * @brief Calculate the magnitude of a 2D vector.
  * @param v The vector.
  * @return The magnitude of the vector.
@@ -138,6 +148,17 @@ brh_vector2 vec2_rotate_ref(brh_vector2* v, float angle);
 // ============================================================================
 // Vector3 Structure and Functions
 // ============================================================================
+
+/*
+* @brief Creates a `brh_vector3` instance with the specified x, y, and z components.
+*
+* @param x The x component of the vector.
+* @param y The y component of the vector.
+* @param z The z component of the vector.
+*
+* @return A `brh_vector3` instance with the specified components.
+*/
+brh_vector3 vec3_create(float x, float y, float z);
 
 /**
  * @brief Calculate the magnitude of a 3D vector.

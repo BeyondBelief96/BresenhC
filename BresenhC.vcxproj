@@ -146,6 +146,7 @@
     <ClCompile Include="src\brh_camera.c" />
     <ClCompile Include="src\brh_face.c" />
     <ClCompile Include="src\brh_matrix.c" />
+    <ClCompile Include="src\brh_clipping.c" />
     <ClCompile Include="src\brh_texture.c" />
     <ClCompile Include="src\brh_vector.c" />
     <ClCompile Include="src\display.c" />
@@ -161,6 +162,7 @@
     <ClInclude Include="include\array.h" />
     <ClInclude Include="include\brh_face.h" />
     <ClInclude Include="include\brh_matrix.h" />
+    <ClInclude Include="include\brh_clipping.h" />
     <ClInclude Include="include\brh_texture.h" />
     <ClInclude Include="include\brh_vector.h" />
     <ClInclude Include="include\cgltf.h" />

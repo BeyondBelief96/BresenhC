@@ -32,7 +32,6 @@ extern float* z_buffer;
 extern uint32_t window_width;
 extern uint32_t window_height;
 
-
 /**
  * @brief Initializes the SDL window and renderer.
  *

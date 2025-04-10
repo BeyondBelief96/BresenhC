@@ -148,7 +148,7 @@ brh_mat4 mat4_create_perspective_projection(float fov, float aspect_ratio, float
 brh_vector4 mat4_mul_vec4(const brh_mat4* m, brh_vector4 v);
 
 /**
- * @brief Multiplies a 4x4 matrix by a 4D vector and stores the result in the vector.
+ * @brief Multiplies a 4D vector by a 4x4 matrix and stores the result in the passed in vector.
  * 
  * @param m Pointer to the 4x4 matrix.
  * @param v Pointer to the 4D vector.

@@ -1,6 +1,18 @@
 #include <math.h>
 #include "brh_vector.h"
 
+brh_vector3 vec3_create(float x, float y, float z)
+{
+	brh_vector3 v = { .x = x, .y = y, .z = z };
+	return v;
+}
+
+brh_vector2 vec2_create(float x, float y)
+{
+	brh_vector2 v = { .x = x, .y = y };
+	return v;
+}
+
 float vec2_magnitude(brh_vector2 v)
 {
 	return sqrtf(v.x * v.x + v.y * v.y);

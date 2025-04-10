@@ -17,12 +17,22 @@
 #include "model_loader.h"
 #include "brh_light.h"
 #include "brh_camera.h"
+#include "brh_clipping.h"
 
 /* --------- Global Variables --------- */
 bool is_running = true;
 float delta_time_seconds = 0.0f;
 uint32_t previous_frame_time = 0;
 uint32_t cell_size = 0;
+
+/* ------- Mouse Camera Parameters -------*/
+int mouse_x_prev = 0;
+int mouse_y_prev = 0;
+bool mouse_initialized = false;
+bool mouse_locked = false;
+int movement_forward = 0;  // -1 for backward, 1 for forward, 0 for none
+int movement_right = 0;    // -1 for left, 1 for right, 0 for none
+int movement_up = 0;       // -1 for down, 1 for up, 0 for none
 
 /* Rendering transformation matrices */
 brh_mat4 world_matrix;
@@ -103,14 +113,25 @@ bool initialize_resources(void)
     cell_size = gcd(window_width, window_height);
 
     /* --- Initialize projection matrix --- */
-    float fov_radians = degrees_to_radians(60.0f);
+    float fov_radians = degrees_to_radians(frustum_fov_y);
     float aspect_ratio = (float)window_width / (float)window_height;
     perspective_projection_matrix = mat4_create_perspective_projection(
         fov_radians,
         aspect_ratio,
-        0.1f,   // Near plane 
-        100.0f  // Far plane
+        near_plane,
+        far_plane
     );
+
+    /* Initialize the clipping planes */
+    initialize_frustum_clipping_planes(fov_radians, near_plane, far_plane);
+
+    mouse_camera.position = (brh_vector3){ 0.0f, 0.0f, 0.0f };
+    mouse_camera.direction = (brh_vector3){ 0.0f, 0.0f, 1.0f };
+    mouse_camera.yaw_angle = 0.0f;
+    mouse_camera.pitch_angle = 0.0f;
+    mouse_camera.speed = 5.0f;
+    mouse_camera.sensitivity = 0.002f;
+	SDL_SetWindowRelativeMouseMode(window, false);
 
     /* --- Load 3D mesh --- */
     bool loaded = load_obj("./assets/f22.obj", &mesh, true);
@@ -182,6 +203,29 @@ void process_input(void)
         case SDL_EVENT_QUIT:
             is_running = false;
             break;
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                // Lock/unlock mouse on left click
+                mouse_locked = !mouse_locked;
+                SDL_SetWindowRelativeMouseMode(window, mouse_locked);
+            }
+            break;
+        case SDL_EVENT_MOUSE_MOTION:
+            if (mouse_locked) {
+                // Only process mouse movement if mouse is locked
+                int mouse_x_rel = (int)event.motion.xrel;
+                int mouse_y_rel = (int)event.motion.yrel;
+
+                if (!mouse_initialized) {
+                    // Skip the first frame after mouse lock to avoid jumps
+                    mouse_initialized = true;
+                    break;
+                }
+
+                // Update camera orientation based on mouse movement
+				update_mouse_camera_view(&mouse_camera, mouse_x_rel, mouse_y_rel, delta_time_seconds);
+            }
+            break;
 
         case SDL_EVENT_KEY_DOWN:
             switch (event.key.key)
@@ -213,35 +257,49 @@ void process_input(void)
                 case SDLK_X:
                     cull_method = CULL_NONE;
                     break;
-                case SDLK_UP:
-                    fps_camera.position.y += 3.0f * delta_time_seconds;
+                    // Camera movement controls
+                case SDLK_W:
+                    movement_forward = 1;
                     break;
-                case SDLK_DOWN:
-                    fps_camera.position.y -= 3.0f * delta_time_seconds;
+                case SDLK_S:
+                    movement_forward = -1;
+                    break;
+                case SDLK_D:
+                    movement_right = 1;
                     break;
                 case SDLK_A:
-					fps_camera.yaw_angle -= degrees_to_radians(90) * delta_time_seconds;
-					break;
-				case SDLK_D:
-					fps_camera.yaw_angle += degrees_to_radians(90) * delta_time_seconds;
-				case SDLK_W:
-                {
-					// Move forward in the direction the camera is facing
-					fps_camera.forward_velocity = vec3_scale(fps_camera.direction, 5.0f * delta_time_seconds);  
-					fps_camera.position = vec3_add(fps_camera.position, fps_camera.forward_velocity);
+                    movement_right = -1;
                     break;
-                }
-                case SDLK_S:
-                {
-                    // Move forward in the direction the camera is facing
-                    fps_camera.forward_velocity = vec3_scale(fps_camera.direction, 10.0f * delta_time_seconds);
-                    fps_camera.position = vec3_subtract(fps_camera.position, fps_camera.forward_velocity);
+                case SDLK_SPACE:
+                    movement_up = 1;
                     break;
-                }
+                case SDLK_LCTRL:
+                    movement_up = -1;
+                    break;
             } 
+            break;
+        case SDL_EVENT_KEY_UP:
+            switch (event.key.key)
+            {
+            case SDLK_W:
+            case SDLK_S:
+                movement_forward = 0;
+                break;
+            case SDLK_A:
+            case SDLK_D:
+                movement_right = 0;
+                break;
+            case SDLK_SPACE:
+            case SDLK_LCTRL:
+                movement_up = 0;
+                break;
+            }
             break;
         }
     }
+
+    // Update camera position based on movement keys
+    move_mouse_camera(&mouse_camera, movement_forward, movement_right, movement_up, delta_time_seconds);
 }
 
 /* --------- Update Game State --------- */
@@ -249,33 +307,23 @@ void update(void)
 {
     /* ------- Frame Timing Management ------- */
     // Cap frame rate to target FPS
-    uint32_t time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
+    uint32_t time_to_wait = FRAME_TARGET_TIME - ((uint32_t)SDL_GetTicks() - previous_frame_time);
     if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
         SDL_Delay(time_to_wait);
     }
 
 	// Calculate delta time factor converted to seconds to update our game objects in a consistent manner.
     delta_time_seconds = (SDL_GetTicks() - previous_frame_time) / 1000.0f;
-    previous_frame_time = SDL_GetTicks();
+    previous_frame_time = (uint32_t)SDL_GetTicks();
 
     /* ------- Update Model Transform ------- */
     // Apply small rotations each frame for animation
-    mesh.rotation.x += 0.5 * delta_time_seconds;
-    //mesh.rotation.y += M_PI * delta_time_seconds;
-    //mesh.rotation.z += M_PI * delta_time_seconds;
+    mesh.rotation.x += 0.5f * delta_time_seconds;
     mesh.translation.z = 5.0f;
 
     // Generate matrices for this frame
     world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
-
-    // Compute the new camera transformation matrix
-    brh_vector3 up = { 0.0f, 1.0f, 0.0f };
-    brh_vector3 target = { 0.0f, 0.0f, 1.0f };
-	brh_mat4 camera_yaw_rotation = mat4_create_rotation_y(fps_camera.yaw_angle);
-    fps_camera.direction = vec3_from_vec4(mat4_mul_vec4(&camera_yaw_rotation, vec4_from_vec3(target)));
-
-	target = vec3_add(fps_camera.position, fps_camera.direction);
-    camera_matrix = create_camera_look_at_matrix(fps_camera.position, target, up);
+	camera_matrix = get_mouse_camera_view_matrix(&mouse_camera);
 
     /* ------- Process Mesh Faces ------- */
     // Reset the triangle count for this frame
