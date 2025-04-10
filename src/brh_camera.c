@@ -5,8 +5,15 @@ brh_look_at_camera lookat_camera = {
 	.target = { 0.0f, 0.0f, 1.0f }
 };
 
+brh_fps_camera fps_camera = {
+	.position = { 0.0f, 0.0f, 0.0f },
+	.direction = { 0.0f, 0.0f, 1.0f },
+	.forward_velocity = { 0.0f, 0.0f, 0.0f },
+	.yaw_angle = 0.0f
+};
 
-brh_mat4 create_look_at_camera_matrix(brh_vector3 eyePosition, brh_vector3 target, brh_vector3 up)
+
+brh_mat4 create_camera_look_at_matrix(brh_vector3 eyePosition, brh_vector3 target, brh_vector3 up)
 {
 	brh_vector3 forward = vec3_unit_vector(vec3_subtract(target, eyePosition));
 	brh_vector3 right = vec3_unit_vector(vec3_cross(up, forward));

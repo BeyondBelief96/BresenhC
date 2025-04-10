@@ -184,35 +184,61 @@ void process_input(void)
             break;
 
         case SDL_EVENT_KEY_DOWN:
-            switch (event.key.key) {
-            case SDLK_ESCAPE:
-                is_running = false;
-                break;
-            case SDLK_1:
-                render_method = RENDER_WIREFRAME_VERTEX;
-                break;
-            case SDLK_2:
-                render_method = RENDER_WIREFRAME;
-                break;
-            case SDLK_3:
-                render_method = RENDER_FILL_TRIANGLE;
-                break;
-            case SDLK_4:
-                render_method = RENDER_FILL_TRIANGLE_WIREFRAME;
-                break;
-            case SDLK_5:
-                render_method = RENDER_TEXTURED;
-                break;
-            case SDLK_6:
-                render_method = RENDER_TEXTURED_WIREFRAME;
-                break;
-            case SDLK_C:
-                cull_method = CULL_BACKFACE;
-                break;
-            case SDLK_D:
-                cull_method = CULL_NONE;
-                break;
-            }
+            switch (event.key.key)
+            {
+                case SDLK_ESCAPE:
+                    is_running = false;
+                    break;
+                case SDLK_1:
+                    render_method = RENDER_WIREFRAME_VERTEX;
+                    break;
+                case SDLK_2:
+                    render_method = RENDER_WIREFRAME;
+                    break;
+                case SDLK_3:
+                    render_method = RENDER_FILL_TRIANGLE;
+                    break;
+                case SDLK_4:
+                    render_method = RENDER_FILL_TRIANGLE_WIREFRAME;
+                    break;
+                case SDLK_5:
+                    render_method = RENDER_TEXTURED;
+                    break;
+                case SDLK_6:
+                    render_method = RENDER_TEXTURED_WIREFRAME;
+                    break;
+                case SDLK_C:
+                    cull_method = CULL_BACKFACE;
+                    break;
+                case SDLK_X:
+                    cull_method = CULL_NONE;
+                    break;
+                case SDLK_UP:
+                    fps_camera.position.y += 3.0f * delta_time_seconds;
+                    break;
+                case SDLK_DOWN:
+                    fps_camera.position.y -= 3.0f * delta_time_seconds;
+                    break;
+                case SDLK_A:
+					fps_camera.yaw_angle -= degrees_to_radians(90) * delta_time_seconds;
+					break;
+				case SDLK_D:
+					fps_camera.yaw_angle += degrees_to_radians(90) * delta_time_seconds;
+				case SDLK_W:
+                {
+					// Move forward in the direction the camera is facing
+					fps_camera.forward_velocity = vec3_scale(fps_camera.direction, 5.0f * delta_time_seconds);  
+					fps_camera.position = vec3_add(fps_camera.position, fps_camera.forward_velocity);
+                    break;
+                }
+                case SDLK_S:
+                {
+                    // Move forward in the direction the camera is facing
+                    fps_camera.forward_velocity = vec3_scale(fps_camera.direction, 10.0f * delta_time_seconds);
+                    fps_camera.position = vec3_subtract(fps_camera.position, fps_camera.forward_velocity);
+                    break;
+                }
+            } 
             break;
         }
     }
@@ -239,17 +265,17 @@ void update(void)
     //mesh.rotation.z += M_PI * delta_time_seconds;
     mesh.translation.z = 5.0f;
 
-    // Update camera position (simple animation for testing)
-    lookat_camera.position.x += 1 * delta_time_seconds;
-	lookat_camera.position.y += 1 * delta_time_seconds;
-
-
     // Generate matrices for this frame
     world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
 
-
+    // Compute the new camera transformation matrix
     brh_vector3 up = { 0.0f, 1.0f, 0.0f };
-    camera_matrix = create_look_at_camera_matrix(lookat_camera.position, lookat_camera.target, up);
+    brh_vector3 target = { 0.0f, 0.0f, 1.0f };
+	brh_mat4 camera_yaw_rotation = mat4_create_rotation_y(fps_camera.yaw_angle);
+    fps_camera.direction = vec3_from_vec4(mat4_mul_vec4(&camera_yaw_rotation, vec4_from_vec3(target)));
+
+	target = vec3_add(fps_camera.position, fps_camera.direction);
+    camera_matrix = create_camera_look_at_matrix(fps_camera.position, target, up);
 
     /* ------- Process Mesh Faces ------- */
     // Reset the triangle count for this frame

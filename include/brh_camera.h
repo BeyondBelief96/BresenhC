@@ -51,9 +51,10 @@ typedef struct {
  * @param up The up vector defining the camera's orientation.
  * @return A 4x4 view matrix representing the camera's transformation.
  */
-brh_mat4 create_look_at_camera_matrix(brh_vector3 eyePosition, brh_vector3 target, brh_vector3 up);
+brh_mat4 create_camera_look_at_matrix(brh_vector3 eyePosition, brh_vector3 target, brh_vector3 up);
 
 extern brh_look_at_camera lookat_camera;
+extern brh_fps_camera fps_camera;
 
 
 
