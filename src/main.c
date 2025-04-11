@@ -127,7 +127,7 @@ bool initialize_resources(void)
     mouse_camera.yaw_angle = 0.0f;
     mouse_camera.pitch_angle = 0.0f;
     mouse_camera.speed = 5.0f;
-    mouse_camera.sensitivity = 0.002f;
+    mouse_camera.sensitivity = 0.001f;
 	SDL_SetWindowRelativeMouseMode(window, false);
 
     /* --- Load 3D mesh --- */

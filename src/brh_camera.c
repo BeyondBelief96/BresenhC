@@ -25,7 +25,7 @@ brh_mouse_camera mouse_camera = {
 	.yaw_angle = 0.0f,
 	.pitch_angle = 0.0f,
 	.speed = 5.0f,
-	.sensitivity = 0.1f
+	.sensitivity = 0.001f
 };
 
 
@@ -58,51 +58,57 @@ brh_mat4 create_camera_matrix(brh_vector3 eyePosition, brh_vector3 target, brh_v
 
 void update_mouse_camera_view(brh_mouse_camera* camera, int mouse_x_rel, int mouse_y_rel, float delta_time)
 {
-	//camera->yaw_angle += (float)mouse_x_rel * camera->sensitivity * delta_time;
-	//camera->pitch_angle -= (float)mouse_y_rel * camera->sensitivity * delta_time;
+    // Remove delta_time - mouse movement doesn't need to be time-scaled
+    camera->yaw_angle += (float)mouse_x_rel * camera->sensitivity;
+    camera->pitch_angle -= (float)mouse_y_rel * camera->sensitivity;
 
-	if (camera->pitch_angle > degrees_to_radians(89.0f)) {
-		camera->pitch_angle = degrees_to_radians(89.0f);
-	}
-	if (camera->pitch_angle < degrees_to_radians(-89.0f)) {
-		camera->pitch_angle = degrees_to_radians(-89.0f);
-	}
+    // Clamp pitch to avoid gimbal lock
+    if (camera->pitch_angle > degrees_to_radians(89.0f)) {
+        camera->pitch_angle = degrees_to_radians(89.0f);
+    }
+    if (camera->pitch_angle < degrees_to_radians(-89.0f)) {
+        camera->pitch_angle = degrees_to_radians(-89.0f);
+    }
 
-	camera->direction.x = cosf(camera->yaw_angle) * cosf(camera->pitch_angle);
-	camera->direction.y = sinf(camera->pitch_angle);
-	camera->direction.z = sinf(camera->yaw_angle) * cosf(camera->pitch_angle);
+    // Calculate direction vector from yaw and pitch
+    camera->direction.x = sinf(camera->yaw_angle) * cosf(camera->pitch_angle);
+    camera->direction.y = sinf(camera->pitch_angle);
+    camera->direction.z = cosf(camera->yaw_angle) * cosf(camera->pitch_angle);
 
-	vec3_normalize(&camera->direction);
+    vec3_normalize(&camera->direction);
 
-	printf("Mouse: dx=%d, dy=%d, Dir: [%.2f, %.2f, %.2f], Yaw: %.2f, Pitch: %.2f\n",
-		mouse_x_rel, mouse_y_rel,
-		camera->direction.x, camera->direction.y, camera->direction.z,
-		camera->yaw_angle, camera->pitch_angle);
+    printf("Mouse: dx=%d, dy=%d, Dir: [%.2f, %.2f, %.2f], Yaw: %.2f, Pitch: %.2f\n",
+        mouse_x_rel, mouse_y_rel,
+        camera->direction.x, camera->direction.y, camera->direction.z,
+        camera->yaw_angle, camera->pitch_angle);
 }
 
 void move_mouse_camera(brh_mouse_camera* camera, int forward, int right, int up, float delta_time)
 {
-	float velocity = camera->speed * delta_time;
+    float velocity = camera->speed * delta_time;
 
-	brh_vector3 world_up = { 0.0f, 1.0f, 0.0f };
-	brh_vector3 right_vec = vec3_cross(world_up, camera->direction);
-	vec3_normalize(&right_vec);
+    // For left-handed coordinate system, the cross product is camera->direction × world_up
+    brh_vector3 world_up = { 0.0f, 1.0f, 0.0f };
+    brh_vector3 right_vec = vec3_cross(world_up, camera->direction);
+    vec3_normalize(&right_vec);
 
-	brh_vector3 up_vec = vec3_cross(right_vec, camera->direction);
-	vec3_normalize(&up_vec);
+    brh_vector3 up_vec = vec3_cross(right_vec, camera->direction);
+    vec3_normalize(&up_vec);
 
-	if (forward != 0) {
-		brh_vector3 forward_movement = vec3_scale(camera->direction, (float)forward * velocity);
-		camera->position = vec3_add(camera->position, forward_movement);
-	}
-	if (right != 0) {
-		brh_vector3 right_movement = vec3_scale(right_vec, (float)right * velocity);
-		camera->position = vec3_add(camera->position, right_movement);
-	}
-	if (up != 0) {
-		brh_vector3 up_movement = vec3_scale(up_vec, (float)up * velocity);
-		camera->position = vec3_add(camera->position, up_movement);
-	}
+    if (forward != 0) {
+        brh_vector3 forward_movement = vec3_scale(camera->direction, (float)forward * velocity);
+        camera->position = vec3_add(camera->position, forward_movement);
+    }
+
+    if (right != 0) {
+        brh_vector3 right_movement = vec3_scale(right_vec, (float)right * velocity);
+        camera->position = vec3_add(camera->position, right_movement);
+    }
+
+    if (up != 0) {
+        brh_vector3 up_movement = vec3_scale(up_vec, (float)up * velocity);
+        camera->position = vec3_add(camera->position, up_movement);
+    }
 }
 
 brh_mat4 get_mouse_camera_view_matrix(brh_mouse_camera* camera)

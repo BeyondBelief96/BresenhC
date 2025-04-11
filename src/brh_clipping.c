@@ -3,16 +3,18 @@
 #include "brh_clipping.h"
 
 /* function declarations*/
+static bool is_vertex_inside_clipspace(brh_vector4 v);
+static float get_line_plane_intersection_parameter(brh_vector4 v0, brh_vector4 v1, brh_clip_plane plane);
 static int clip_triangle_against_plane(brh_triangle* triangle, brh_clip_plane plane, brh_triangle* output);
 
-bool is_vertex_inside_clipspace(brh_vector4 v)
+static bool is_vertex_inside_clipspace(brh_vector4 v)
 {
 	return (-v.w <= v.x && v.x <= v.w) &&
 		(-v.w <= v.y && v.y <= v.w) &&
 		(-v.w <= v.z && v.z <= v.w);
 }
 
-bool is_vertex_inside_plane(brh_vector4 v, brh_clip_plane plane) {
+static bool is_vertex_inside_plane(brh_vector4 v, brh_clip_plane plane) {
     switch (plane) 
     {
         case CLIP_LEFT:   return v.x >= -v.w;
@@ -25,7 +27,7 @@ bool is_vertex_inside_plane(brh_vector4 v, brh_clip_plane plane) {
     }
 }
 
-float get_line_plane_intersection_parameter(brh_vector4 v0, brh_vector4 v1, brh_clip_plane plane) {
+static float get_line_plane_intersection_parameter(brh_vector4 v0, brh_vector4 v1, brh_clip_plane plane) {
     // Calculate intersection parameter t where v0 + t*(v1-v0) is on the plane
     float t = 0.0f;
 
