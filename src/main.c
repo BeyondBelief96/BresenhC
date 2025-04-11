@@ -122,9 +122,6 @@ bool initialize_resources(void)
         far_plane
     );
 
-    /* Initialize the clipping planes */
-    initialize_frustum_clipping_planes(fov_radians, near_plane, far_plane);
-
     mouse_camera.position = (brh_vector3){ 0.0f, 0.0f, 0.0f };
     mouse_camera.direction = (brh_vector3){ 0.0f, 0.0f, 1.0f };
     mouse_camera.yaw_angle = 0.0f;
@@ -312,7 +309,7 @@ void update(void)
         SDL_Delay(time_to_wait);
     }
 
-	// Calculate delta time factor converted to seconds to update our game objects in a consistent manner.
+    // Calculate delta time factor converted to seconds to update our game objects in a consistent manner.
     delta_time_seconds = (SDL_GetTicks() - previous_frame_time) / 1000.0f;
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
@@ -323,7 +320,7 @@ void update(void)
 
     // Generate matrices for this frame
     world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
-	camera_matrix = get_mouse_camera_view_matrix(&mouse_camera);
+    camera_matrix = get_mouse_camera_view_matrix(&mouse_camera);
 
     /* ------- Process Mesh Faces ------- */
     // Reset the triangle count for this frame
@@ -332,12 +329,16 @@ void update(void)
     int num_faces = array_length(mesh.faces);
     int num_texcoords = array_length(mesh.texcoords);
 
+    // Temporary triangle buffer for clipping
+    brh_triangle clipped_triangles[MAX_CLIPPED_TRIANGLES];
+
     // Process each face, transforming vertices and culling as needed
-    for (int i = 0; i < num_faces; i++) {
+    for (int i = 0; i < num_faces && triangles_to_render_count < triangles_to_render_capacity; i++) {
         brh_face face = mesh.faces[i];
         brh_vector3 face_vertices_model[3];
         brh_vector4 face_vertices_world[3];
-		brh_vector4 face_vertices_camera[3];
+        brh_vector4 face_vertices_camera[3];
+        brh_vector4 face_vertices_clip[3]; // Store clip space vertices
         brh_vertex triangle_vertices[3];
         brh_texel face_texels[3] = { {0, 0}, {0, 0}, {0, 0} };
 
@@ -365,36 +366,27 @@ void update(void)
             // Transform from world space to camera (view) space
             brh_vector4 camera_vertex = face_vertices_world[j];
             mat4_mul_vec4_ref(&camera_matrix, &camera_vertex);
-			face_vertices_camera[j] = camera_vertex;
+            face_vertices_camera[j] = camera_vertex;
 
             // Transform from camera space to clip space
-            brh_vector4 projected_vertex = mat4_mul_vec4(
+            brh_vector4 clip_vertex = mat4_mul_vec4(
                 &perspective_projection_matrix,
                 camera_vertex
             );
+            face_vertices_clip[j] = clip_vertex; // Store for clipping
 
             // Store inverse W for perspective correction
-            float original_w = projected_vertex.w;
+            float original_w = clip_vertex.w;
             triangle_vertices[j].inv_w = 1.0f / original_w;
 
-            // Perspective division (clip space to NDC)
-            brh_vector4 ndc_vertex = projected_vertex;
-            ndc_vertex.x *= triangle_vertices[j].inv_w;
-            ndc_vertex.y *= triangle_vertices[j].inv_w;
-            ndc_vertex.z *= triangle_vertices[j].inv_w;
-
-            // Viewport transformation (NDC to screen space)
-            triangle_vertices[j].position.x = (ndc_vertex.x + 1.0f) * 0.5f * (float)window_width;
-            triangle_vertices[j].position.y = (1.0f - ndc_vertex.y) * 0.5f * (float)window_height;
-            triangle_vertices[j].position.z = face_vertices_world[j].z; // Store world Z for sorting
-            triangle_vertices[j].position.w = original_w;
+            // Save the clip space position in the vertex (for clipping)
+            triangle_vertices[j].position = clip_vertex;
 
             // Assign texture coordinates
             triangle_vertices[j].texel = face_texels[j];
         }
 
         /* --- Backface Culling --- */
-		// Backface culling based on camera position and camera space.
         if (cull_method == CULL_BACKFACE) {
             brh_vector3 vecA_camera = vec3_from_vec4(face_vertices_camera[0]);
             brh_vector3 vecB_camera = vec3_from_vec4(face_vertices_camera[1]);
@@ -427,17 +419,50 @@ void update(void)
             triangle_vertices[1].normal = face_normal;
             triangle_vertices[2].normal = face_normal;
 
-            // Create triangle and add to render buffer
-            brh_triangle projected_triangle = {
+            // Create triangle
+            brh_triangle clip_space_triangle = {
                 .vertices = { triangle_vertices[0], triangle_vertices[1], triangle_vertices[2] },
                 .color = triangle_color,
             };
 
-            if (triangles_to_render_count < triangles_to_render_capacity) {
+            // CLIP SPACE CLIPPING: Clip the triangle against all planes
+            int num_clipped = clip_triangle(&clip_space_triangle, clipped_triangles);
+
+            // Process each clipped triangle (could be 0, 1, or multiple)
+            for (int j = 0; j < num_clipped && triangles_to_render_count < triangles_to_render_capacity; j++) {
+                // Create a projected triangle from the clipped triangle
+                brh_triangle projected_triangle = clipped_triangles[j];
+
+                // Perform perspective division and viewport transformation for each vertex
+                for (int k = 0; k < 3; k++) {
+                    // Get original clip space position
+                    brh_vector4 clip_pos = projected_triangle.vertices[k].position;
+
+                    // Perform perspective division (clip space to NDC)
+                    float inv_w = 1.0f / clip_pos.w;
+                    brh_vector4 ndc_vertex;
+                    ndc_vertex.x = clip_pos.x * inv_w;
+                    ndc_vertex.y = clip_pos.y * inv_w;
+                    ndc_vertex.z = clip_pos.z * inv_w;
+                    ndc_vertex.w = clip_pos.w;
+
+                    // Update the vertex with viewport transformation (NDC to screen space)
+                    projected_triangle.vertices[k].position.x = (ndc_vertex.x + 1.0f) * 0.5f * (float)window_width;
+                    projected_triangle.vertices[k].position.y = (1.0f - ndc_vertex.y) * 0.5f * (float)window_height;
+                    projected_triangle.vertices[k].position.z = ndc_vertex.z; // Now in NDC space [-1,1]
+                    projected_triangle.vertices[k].position.w = clip_pos.w;   // Preserve W for later use
+                    projected_triangle.vertices[k].inv_w = inv_w;             // Update inv_w for perspective correction
+                }
+
+                // Add the projected triangle to the render buffer
                 triangles_to_render[triangles_to_render_count++] = projected_triangle;
             }
-            else {
-                fprintf(stderr, "Warning: Triangle buffer overflow\n");
+
+            // Check if we've hit capacity and need to stop processing
+            if (triangles_to_render_count >= triangles_to_render_capacity) {
+                fprintf(stderr, "Warning: Triangle buffer filled to capacity (%d triangles)\n",
+                    triangles_to_render_capacity);
+                break; // Exit the face processing loop
             }
         }
     }

@@ -92,15 +92,19 @@ void fill_flat_bottom_triangle(int x0, int y0, float inv_w0, int x1, int y1, flo
         // Draw the horizontal span with Z-test
         for (int x = x_scan_start; x <= x_scan_end; x++)
         {
-            // Z-Buffer Test: Check if pixel is valid and closer than existing depth
-            // Larger 1/w means closer.
-            if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+            // Add bounds checking to prevent out-of-bounds Z-buffer access
+            if (x >= 0 && x < window_width && y >= 0 && y < window_height)
             {
-                draw_pixel(x, y, color);
-                z_buffer[(window_width * y) + x] = current_inv_w; // Update depth buffer
-            }
-            // Increment 1/w for the next pixel
-            current_inv_w += inv_w_step;
+                // Z-Buffer Test: Check if pixel is valid and closer than existing depth
+            // Larger 1/w means closer.
+                if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+                {
+                    draw_pixel(x, y, color);
+                    z_buffer[(window_width * y) + x] = current_inv_w; // Update depth buffer
+                }
+                // Increment 1/w for the next pixel
+                current_inv_w += inv_w_step;
+            } 
         }
 
         // Update edge x-coordinates for the next scanline
@@ -161,14 +165,18 @@ void fill_flat_top_triangle(int x0, int y0, float inv_w0, int x1, int y1, float 
         // Draw the horizontal span with Z-test
         for (int x = x_scan_start; x <= x_scan_end; x++)
         {
-            // Z-Buffer Test
-            if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+            // Add bounds checking to prevent out-of-bounds Z-buffer access
+            if (x >= 0 && x < window_width && y >= 0 && y < window_height)
             {
-                draw_pixel(x, y, color);
-                z_buffer[(window_width * y) + x] = current_inv_w;
+                // Z-Buffer Test
+                if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+                {
+                    draw_pixel(x, y, color);
+                    z_buffer[(window_width * y) + x] = current_inv_w;
+                }
+                // Increment 1/w
+                current_inv_w += inv_w_step;
             }
-            // Increment 1/w
-            current_inv_w += inv_w_step;
         }
 
         // Update edge x-coordinates (moving upwards)
@@ -317,37 +325,42 @@ void texture_flat_bottom_triangle_perspective(
         {
             const float current_inv_w = current_attrib.inv_w; // Get 1/w for this pixel
 
-            // Z-Buffer Check & Perspective Safety Check
-            // Check if 1/w is valid AND if it's closer than what's in the buffer
-            // Larger 1/w means closer to the camera.
-            if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+
+            // Add bounds checking to prevent out-of-bounds Z-buffer access
+            if (x >= 0 && x < window_width && y >= 0 && y < window_height)
             {
-                // --- Perspective Correction ---
-                const float current_w = 1.0f / current_inv_w;
-                const float current_u = current_attrib.u_over_w * current_w;
-                const float current_v = current_attrib.v_over_w * current_w;
+                // Z-Buffer Check & Perspective Safety Check
+                // Check if 1/w is valid AND if it's closer than what's in the buffer
+                // Larger 1/w means closer to the camera.
+                if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+                {
+                    // --- Perspective Correction ---
+                    const float current_w = 1.0f / current_inv_w;
+                    const float current_u = current_attrib.u_over_w * current_w;
+                    const float current_v = current_attrib.v_over_w * current_w;
 
-                // --- Texture Sampling ---
-                // Invert V coordinate during sampling if needed
-                int tex_x = (int)floorf(current_u * texture_width + EPSILON);
-                int tex_y = (int)floorf((1.0f - current_v) * texture_height + EPSILON); // Assuming V inversion needed here
+                    // --- Texture Sampling ---
+                    // Invert V coordinate during sampling if needed
+                    int tex_x = (int)floorf(current_u * texture_width + EPSILON);
+                    int tex_y = (int)floorf((1.0f - current_v) * texture_height + EPSILON); // Assuming V inversion needed here
 
-                tex_x = ((tex_x % texture_width) + texture_width) % texture_width;
-                tex_y = ((tex_y % texture_height) + texture_height) % texture_height;
+                    tex_x = ((tex_x % texture_width) + texture_width) % texture_width;
+                    tex_y = ((tex_y % texture_height) + texture_height) % texture_height;
 
-                const uint32_t texel_color = texture[tex_y * texture_width + tex_x];
+                    const uint32_t texel_color = texture[tex_y * texture_width + tex_x];
 
-                // --- Draw Pixel ---
-                draw_pixel(x, y, texel_color);
+                    // --- Draw Pixel ---
+                    draw_pixel(x, y, texel_color);
 
-                // --- Update Z-Buffer ---
-                z_buffer[(window_width * y) + x] = current_inv_w; // Store 1/w
+                    // --- Update Z-Buffer ---
+                    z_buffer[(window_width * y) + x] = current_inv_w; // Store 1/w
+                }
+
+                // --- Increment Horizontal Interpolators (always happens) ---
+                current_attrib.inv_w += inv_w_step;
+                current_attrib.u_over_w += u_over_w_step;
+                current_attrib.v_over_w += v_over_w_step;
             }
-
-            // --- Increment Horizontal Interpolators (always happens) ---
-            current_attrib.inv_w += inv_w_step;
-            current_attrib.u_over_w += u_over_w_step;
-            current_attrib.v_over_w += v_over_w_step;
         }
 
         // --- Update Edge X-Coordinates for Next Scanline ---
@@ -445,37 +458,42 @@ void texture_flat_top_triangle_perspective(
         {
             const float current_inv_w = current_attrib.inv_w; // Get 1/w for this pixel
 
-            // Z-Buffer Check & Perspective Safety Check
+
+            // Add bounds checking to prevent out-of-bounds Z-buffer access
+            if (x >= 0 && x < window_width && y >= 0 && y < window_height)
+            {
+                // Z-Buffer Check & Perspective Safety Check
             // Check if 1/w is valid AND if it's closer than what's in the buffer
             // Larger 1/w means closer to the camera.
-            if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
-            {
-                // --- Perspective Correction ---
-                const float current_w = 1.0f / current_inv_w;
-                const float current_u = current_attrib.u_over_w * current_w;
-                const float current_v = current_attrib.v_over_w * current_w;
+                if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+                {
+                    // --- Perspective Correction ---
+                    const float current_w = 1.0f / current_inv_w;
+                    const float current_u = current_attrib.u_over_w * current_w;
+                    const float current_v = current_attrib.v_over_w * current_w;
 
-                // --- Texture Sampling ---
-                // Invert V coordinate during sampling if needed
-                int tex_x = (int)floorf(current_u * texture_width + EPSILON);
-                int tex_y = (int)floorf((1.0f - current_v) * texture_height + EPSILON); // Assuming V inversion needed here
+                    // --- Texture Sampling ---
+                    // Invert V coordinate during sampling if needed
+                    int tex_x = (int)floorf(current_u * texture_width + EPSILON);
+                    int tex_y = (int)floorf((1.0f - current_v) * texture_height + EPSILON); // Assuming V inversion needed here
 
-                tex_x = ((tex_x % texture_width) + texture_width) % texture_width;
-                tex_y = ((tex_y % texture_height) + texture_height) % texture_height;
+                    tex_x = ((tex_x % texture_width) + texture_width) % texture_width;
+                    tex_y = ((tex_y % texture_height) + texture_height) % texture_height;
 
-                const uint32_t texel_color = texture[tex_y * texture_width + tex_x];
+                    const uint32_t texel_color = texture[tex_y * texture_width + tex_x];
 
-                // --- Draw Pixel ---
-                draw_pixel(x, y, texel_color);
+                    // --- Draw Pixel ---
+                    draw_pixel(x, y, texel_color);
 
-                // --- Update Z-Buffer ---
-                z_buffer[(window_width * y) + x] = current_inv_w; // Store 1/w
+                    // --- Update Z-Buffer ---
+                    z_buffer[(window_width * y) + x] = current_inv_w; // Store 1/w
+                }
+
+                // --- Increment Horizontal Interpolators (always happens) ---
+                current_attrib.inv_w += inv_w_step;
+                current_attrib.u_over_w += u_over_w_step;
+                current_attrib.v_over_w += v_over_w_step;
             }
-
-            // --- Increment Horizontal Interpolators (always happens) ---
-            current_attrib.inv_w += inv_w_step;
-            current_attrib.u_over_w += u_over_w_step;
-            current_attrib.v_over_w += v_over_w_step;
         }
 
         // --- Update Edge X-Coordinates for Next Scanline ---
@@ -614,4 +632,29 @@ brh_vector3 calculate_barycentic_coordinates(brh_vector2 p, brh_vector2 a, brh_v
     float gamma = 1.0f - alpha - beta;
 
     return (brh_vector3) { alpha, beta, gamma };
+}
+
+brh_vertex interpolate_vertices(brh_vertex v0, brh_vertex v1, float t)
+{
+    brh_vertex result;
+    // Interpolate position
+    result.position.x = v0.position.x + t * (v1.position.x - v0.position.x);
+    result.position.y = v0.position.y + t * (v1.position.y - v0.position.y);
+    result.position.z = v0.position.z + t * (v1.position.z - v0.position.z);
+    result.position.w = v0.position.w + t * (v1.position.w - v0.position.w);
+
+    // Interpolate texture coordinates
+    result.texel.u = v0.texel.u + t * (v1.texel.u - v0.texel.u);
+    result.texel.v = v0.texel.v + t * (v1.texel.v - v0.texel.v);
+
+    // Interpolate normals
+    result.normal.x = v0.normal.x + t * (v1.normal.x - v0.normal.x);
+    result.normal.y = v0.normal.y + t * (v1.normal.y - v0.normal.y);
+    result.normal.z = v0.normal.z + t * (v1.normal.z - v0.normal.z);
+
+    // Interpolate inverse W (for perspective correction)
+    result.inv_w = v0.inv_w + t * (v1.inv_w - v0.inv_w);
+
+    return result;
+    
 }

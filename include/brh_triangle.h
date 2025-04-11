@@ -113,3 +113,17 @@ void draw_textured_triangle(brh_triangle* triangle, uint32_t* texture);
  * @return A `brh_vector3` containing the barycentric weights {alpha, beta, gamma}.
  */
 brh_vector3 calculate_barycentic_coordinates(brh_vector2 p, brh_vector2 a, brh_vector2 b, brh_vector2 c);
+
+/*
+* @brief Interpolates between two vertices based on a parameter t.
+* 
+* This function linearly interpolates the position, texture coordinates,
+* and normal of two vertices based on the parameter t.
+* 
+* @param v0 The first vertex.
+* @param v1 The second vertex.
+* @param t The interpolation parameter (0 <= t <= 1).
+* 
+* @return A new `brh_vertex` that is the result of the interpolation.
+*/
+brh_vertex interpolate_vertices(brh_vertex v0, brh_vertex v1, float t);

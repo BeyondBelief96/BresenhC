@@ -63,6 +63,9 @@
     <ClCompile Include="src\brh_clipping.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\brh_geometry.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\array.h">
@@ -105,6 +108,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\brh_clipping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
