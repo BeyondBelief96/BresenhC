@@ -54,7 +54,7 @@ bool initialize_window(void)
     int fullscreen_width = display_mode->w;
 	int fullscreen_height = display_mode->h;
 	float aspect_ratio = (float)fullscreen_width / (float)fullscreen_height;
-    window_width = 1280;
+    window_width = fullscreen_width;
     window_height = (int)((float) window_width / aspect_ratio);
 
     window = SDL_CreateWindow("C Renderer", fullscreen_width, fullscreen_height, 0);

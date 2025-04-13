@@ -147,7 +147,11 @@
     <ClCompile Include="src\brh_geometry.c" />
     <ClCompile Include="src\brh_matrix.c" />
     <ClCompile Include="src\brh_clipping.c" />
+    <ClCompile Include="src\brh_mesh_manager.c" />
+    <ClCompile Include="src\brh_renderable.c" />
+    <ClCompile Include="src\brh_scene.c" />
     <ClCompile Include="src\brh_texture.c" />
+    <ClCompile Include="src\brh_texture_manager.c" />
     <ClCompile Include="src\brh_vector.c" />
     <ClCompile Include="src\brh_display.c" />
     <ClCompile Include="src\brh_light.c" />
@@ -165,7 +169,11 @@
     <ClInclude Include="include\brh_geometry.h" />
     <ClInclude Include="include\brh_matrix.h" />
     <ClInclude Include="include\brh_clipping.h" />
+    <ClInclude Include="include\brh_mesh_manager.h" />
+    <ClInclude Include="include\brh_renderable.h" />
+    <ClInclude Include="include\brh_scene.h" />
     <ClInclude Include="include\brh_texture.h" />
+    <ClInclude Include="include\brh_texture_manager.h" />
     <ClInclude Include="include\brh_vector.h" />
     <ClInclude Include="include\cgltf.h" />
     <ClInclude Include="include\brh_display.h" />

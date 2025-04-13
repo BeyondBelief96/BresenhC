@@ -63,6 +63,15 @@
     <ClCompile Include="src\brh_geometry.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="include\brh_mesh_manager.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_mesh_manager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_texture_manager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\array.h">
@@ -111,6 +120,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\brh_camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_texture_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
