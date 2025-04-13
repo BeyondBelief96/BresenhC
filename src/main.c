@@ -504,7 +504,6 @@ void render(void)
 
     /* Present the frame */
     render_color_buffer();
-    SDL_RenderPresent(get_renderer());
 }
 
 /* --------- Mesh Resource Cleanup --------- */

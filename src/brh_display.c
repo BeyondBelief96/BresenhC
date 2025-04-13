@@ -233,6 +233,7 @@ void render_color_buffer(void)
 
     SDL_UpdateTexture(color_buffer_texture, NULL, color_buffer, window_width * sizeof(uint32_t));
     SDL_RenderTexture(renderer, color_buffer_texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
 }
 
 void set_render_method(enum render_method method)
