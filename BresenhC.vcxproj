@@ -141,7 +141,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="include\brh_camera.h" />
     <ClCompile Include="src\array.c" />
     <ClCompile Include="src\brh_camera.c" />
     <ClCompile Include="src\brh_face.c" />
@@ -150,7 +149,7 @@
     <ClCompile Include="src\brh_clipping.c" />
     <ClCompile Include="src\brh_texture.c" />
     <ClCompile Include="src\brh_vector.c" />
-    <ClCompile Include="src\display.c" />
+    <ClCompile Include="src\brh_display.c" />
     <ClCompile Include="src\brh_light.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\math_utils.c" />
@@ -160,6 +159,7 @@
     <ClCompile Include="src\upng.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\brh_camera.h" />
     <ClInclude Include="include\array.h" />
     <ClInclude Include="include\brh_face.h" />
     <ClInclude Include="include\brh_geometry.h" />
@@ -168,7 +168,7 @@
     <ClInclude Include="include\brh_texture.h" />
     <ClInclude Include="include\brh_vector.h" />
     <ClInclude Include="include\cgltf.h" />
-    <ClInclude Include="include\display.h" />
+    <ClInclude Include="include\brh_display.h" />
     <ClInclude Include="include\brh_light.h" />
     <ClInclude Include="include\math_utils.h" />
     <ClInclude Include="include\brh_mesh.h" />
@@ -181,16 +181,6 @@
     <None Include=".gitignore" />
     <None Include="SDL3.dll" />
     <None Include="README.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="assets\cube.obj">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </Object>
-    <Object Include="assets\f22.obj">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </Object>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

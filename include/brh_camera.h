@@ -38,13 +38,6 @@ typedef struct {
 	float sensitivity; // The sensitivity of the mouse movement.
 } brh_mouse_camera;
 
-extern brh_look_at_camera lookat_camera;
-extern brh_fps_camera fps_camera;
-extern brh_mouse_camera mouse_camera;
-extern float frustum_fov_y;
-extern float near_plane;
-extern float far_plane;
-
 /**
  * @brief Creates a view matrix for a camera that looks at a specific point in 3D space.
  *
@@ -87,6 +80,13 @@ void move_mouse_camera(brh_mouse_camera* camera, int forward, int right, int up,
  * @return The view matrix for the camera.
  */
 brh_mat4 get_mouse_camera_view_matrix(brh_mouse_camera* camera);
+
+extern brh_look_at_camera lookat_camera;
+extern brh_fps_camera fps_camera;
+extern brh_mouse_camera mouse_camera;
+extern float frustum_fov_y;
+extern float near_plane;
+extern float far_plane;
 
 
 

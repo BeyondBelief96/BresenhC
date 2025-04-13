@@ -4,7 +4,7 @@
 #include "brh_camera.h"
 
 float frustum_fov_y = 60.0f;
-float near_plane = 0.1f;
+float near_plane = 1.0f;
 float far_plane = 100.0f;
 
 brh_look_at_camera lookat_camera = {
@@ -76,11 +76,6 @@ void update_mouse_camera_view(brh_mouse_camera* camera, int mouse_x_rel, int mou
     camera->direction.z = cosf(camera->yaw_angle) * cosf(camera->pitch_angle);
 
     vec3_normalize(&camera->direction);
-
-    printf("Mouse: dx=%d, dy=%d, Dir: [%.2f, %.2f, %.2f], Yaw: %.2f, Pitch: %.2f\n",
-        mouse_x_rel, mouse_y_rel,
-        camera->direction.x, camera->direction.y, camera->direction.z,
-        camera->yaw_angle, camera->pitch_angle);
 }
 
 void move_mouse_camera(brh_mouse_camera* camera, int forward, int right, int up, float delta_time)
@@ -92,7 +87,7 @@ void move_mouse_camera(brh_mouse_camera* camera, int forward, int right, int up,
     brh_vector3 right_vec = vec3_cross(world_up, camera->direction);
     vec3_normalize(&right_vec);
 
-    brh_vector3 up_vec = vec3_cross(right_vec, camera->direction);
+    brh_vector3 up_vec = vec3_cross(camera->direction, right_vec);
     vec3_normalize(&up_vec);
 
     if (forward != 0) {

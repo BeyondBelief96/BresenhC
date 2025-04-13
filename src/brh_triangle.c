@@ -6,7 +6,7 @@
 #include "brh_vector.h"
 #include "brh_texture.h"
 #include "math_utils.h"
-#include "display.h"
+#include "brh_display.h"
 
 // --- Forward Declarations --- 
 static void fill_flat_bottom_triangle(int x0, int y0, float inv_w0,
@@ -45,6 +45,10 @@ void swap_perspective_attribs(brh_perspective_attribs* a, brh_perspective_attrib
 ///////////////////////////////////////////////////////////////////////////////
 void fill_flat_bottom_triangle(int x0, int y0, float inv_w0, int x1, int y1, float inv_w1, int x2, int y2, float inv_w2, uint32_t color) 
 {
+    const int window_width = get_window_width();
+	const int window_height = get_window_height();
+	float* z_buffer = get_z_buffer();
+
     // Calculate inverse screen slopes for X coordinates
     const float inv_slope_x_left = calculate_inverse_slope(x0, y0, x1, y1);
     const float inv_slope_x_right = calculate_inverse_slope(x0, y0, x2, y2);
@@ -118,6 +122,9 @@ void fill_flat_bottom_triangle(int x0, int y0, float inv_w0, int x1, int y1, flo
 ///////////////////////////////////////////////////////////////////////////////
 void fill_flat_top_triangle(int x0, int y0, float inv_w0, int x1, int y1, float inv_w1, int x2, int y2, float inv_w2, uint32_t color)
 {
+    const int window_width = get_window_width();
+    const int window_height = get_window_height();
+    float* z_buffer = get_z_buffer();
     // Calculate inverse screen slopes for X coordinates (from bottom vertex up)
     const float inv_slope_x_left = calculate_inverse_slope(x2, y2, x0, y0);
     const float inv_slope_x_right = calculate_inverse_slope(x2, y2, x1, y1);
@@ -252,6 +259,9 @@ void texture_flat_bottom_triangle_perspective(
     int x2, int y2, brh_perspective_attribs pa2, // Bottom-right vertex data
     const uint32_t* texture)                          // Texture data
 {
+    const int window_width = get_window_width();
+    const int window_height = get_window_height();
+    float* z_buffer = get_z_buffer();
     // Calculate the inverse screen-space slopes (dx/dy) of the two non-horizontal edges.
     // These tell us how much the screen X coordinate changes for each step in Y.
     float inv_slope_1 = calculate_inverse_slope(x0, y0, x1, y1); // Left edge (0->1) slope
@@ -388,6 +398,9 @@ void texture_flat_top_triangle_perspective(
     int x2, int y2, brh_perspective_attribs pa2, // Bottom vertex data
     const uint32_t* texture)                          // Texture data
 {
+    const int window_width = get_window_width();
+    const int window_height = get_window_height();
+    float* z_buffer = get_z_buffer();
     // Calculate the inverse screen-space slopes (dx/dy) of the two non-horizontal edges,
     // starting from the bottom vertex (x2, y2).
     float inv_slope_1 = calculate_inverse_slope(x2, y2, x0, y0); // Left edge (2->0) slope

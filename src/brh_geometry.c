@@ -1,6 +1,16 @@
 #include "brh_geometry.h"
 #include "math_utils.h"
 
+brh_polygon create_polygon_from_triangle(brh_vector3 v0, brh_vector3 v1, brh_vector3 v2)
+{
+	brh_polygon polygon = {
+		.num_vertices = 3,
+		.vertices = { v0, v1, v2 }
+	};
+
+	return polygon;
+}
+
 brh_vector3 find_line_plane_intersection(brh_vector3 line_start, brh_vector3 line_end, brh_plane plane)
 {
 	brh_vector3 q1_p = vec3_subtract(line_start, plane.point);

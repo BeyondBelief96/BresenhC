@@ -18,7 +18,7 @@
     <ClCompile Include="src\array.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\display.c">
+    <ClCompile Include="src\brh_display.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\main.c">
@@ -54,9 +54,6 @@
     <ClCompile Include="src\upng.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\brh_camera.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\brh_camera.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -71,7 +68,7 @@
     <ClInclude Include="include\array.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\display.h">
+    <ClInclude Include="include\brh_display.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\math_utils.h">
@@ -113,15 +110,14 @@
     <ClInclude Include="include\brh_geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\brh_camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
     <None Include="SDL3.dll" />
     <None Include="README.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="assets\cube.obj" />
-    <Object Include="assets\f22.obj" />
   </ItemGroup>
 </Project>
