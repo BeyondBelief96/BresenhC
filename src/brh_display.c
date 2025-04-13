@@ -51,11 +51,13 @@ bool initialize_window(void)
     // Use SDL to query what is the fullscreeen size of the display
     SDL_DisplayID display_id = SDL_GetPrimaryDisplay();
     const SDL_DisplayMode* display_mode = SDL_GetCurrentDisplayMode(display_id);
+    int fullscreen_width = display_mode->w;
+	int fullscreen_height = display_mode->h;
+	float aspect_ratio = (float)fullscreen_width / (float)fullscreen_height;
+    window_width = 1280;
+    window_height = (int)((float) window_width / aspect_ratio);
 
-    window_width = display_mode->w;
-    window_height = display_mode->h;
-
-    window = SDL_CreateWindow("C Renderer", window_width, window_height, 0);
+    window = SDL_CreateWindow("C Renderer", fullscreen_width, fullscreen_height, 0);
 
     if (!window)
     {

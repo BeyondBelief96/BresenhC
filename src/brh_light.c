@@ -2,9 +2,19 @@
 #include "brh_light.h"
 #include "brh_vector.h"
 
-brh_light global_light = {
+static brh_global_light global_light = {
 	.direction = {.x = 0.0f, .y = 0.0f, .z = 1.0f }
 };
+
+brh_global_light get_global_light(void)
+{
+    return global_light;
+}
+
+void set_global_light_direction(brh_vector3 direction)
+{
+	global_light.direction = direction;
+}
 
 uint32_t calculate_flat_shading_color(brh_vector3 normal, uint32_t originalColor)
 {

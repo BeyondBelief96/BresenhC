@@ -14,7 +14,6 @@ extern int texture_height;
 extern uint32_t* mesh_texture_data;
 
 extern upng_t* png_texture;
-extern const uint8_t REDBRICK_TEXTURE[];
 
 bool load_png_texture_data(const char* file_path);
 

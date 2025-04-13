@@ -45,14 +45,18 @@ brh_triangle* triangles_to_render = NULL;
 int triangles_to_render_capacity = 0;
 int triangles_to_render_count = 0;
 
+brh_look_at_camera* lookat_camera = NULL;
+brh_mouse_camera* mouse_camera = NULL;
+
 /* --------- Function Declarations --------- */
 bool initialize_resources(void);
 bool load_mesh_resources(void);
-void initialize_mouse_camera(brh_mouse_camera* camera);
+void initialize_global_light(void);
 void process_input(void);
 void update(void);
 void render(void);
 void cleanup_resources(void);
+void cleanup_camera_resources(void);
 void cleanup_mesh_resources(void);
 
 /* --------- Main Function --------- */
@@ -95,18 +99,14 @@ bool initialize_resources(void)
     cell_size = gcd(get_window_width(), get_window_height());
 
     /* --- Initialize projection matrix --- */
-    float fov_radians = degrees_to_radians(frustum_fov_y);
+    float fov_radians = degrees_to_radians(get_frustum_fov_y());
     float aspect_ratio = (float)get_window_width() / (float)get_window_height();
     perspective_projection_matrix = mat4_create_perspective_projection(
         fov_radians,
         aspect_ratio,
-        near_plane,
-        far_plane
+        get_frustum_near_plane(),
+        get_frustum_far_plane()
     );
-
-    /* Initialize mouse camera */
-    initialize_mouse_camera(&mouse_camera);
-    SDL_SetWindowRelativeMouseMode(get_window(), false);
 
     /* Load mesh and texture resources */
     if (!load_mesh_resources()) {
@@ -115,28 +115,31 @@ bool initialize_resources(void)
     }
 
     /* Initialize camera parameters */
-    lookat_camera.position = (brh_vector3){ 0.0f, 0.0f, 0.0f };
-    lookat_camera.target = (brh_vector3){ 0.0f, 0.0f, 5.0f };
+    set_frustum_parameters(60.0f, 1.0f, 100.0f);
+
+    // Create lookat camera
+    lookat_camera = create_look_at_camera((brh_vector3) {0.0f, 0.0f, 0.0f},(brh_vector3) {0.0f, 0.0f, 5.0f});
+
+    // Create mouse camera
+    mouse_camera = create_mouse_camera((brh_vector3) {0.0f, 0.0f, 0.0f}, (brh_vector3) {0.0f, 0.0f, 1.0f},5.0f, 0.001f);
+    SDL_SetWindowRelativeMouseMode(get_window(), false);
+
+	/* Initialize global light direction */
+	initialize_global_light();
 
     return true;
 }
 
-/* Helper to initialize the mouse camera */
-void initialize_mouse_camera(brh_mouse_camera* camera)
+void initialize_global_light(void)
 {
-    camera->position = (brh_vector3){ 0.0f, 0.0f, 0.0f };
-    camera->direction = (brh_vector3){ 0.0f, 0.0f, 1.0f };
-    camera->yaw_angle = 0.0f;
-    camera->pitch_angle = 0.0f;
-    camera->speed = 5.0f;
-    camera->sensitivity = 0.001f;
+	set_global_light_direction((brh_vector3) { 0.0f, 0.0f, 1.0f });
 }
 
 /* Helper to load mesh and related resources */
 bool load_mesh_resources(void)
 {
     /* Load 3D mesh */
-    bool loaded = load_obj("./assets/f22.obj", &mesh, true);
+    bool loaded = load_obj("./assets/f117.obj", &mesh, true);
     if (!loaded) {
         fprintf(stderr, "Error: Failed to load OBJ file\n");
         return false;
@@ -166,7 +169,7 @@ bool load_mesh_resources(void)
     }
 
     /* Load texture */
-    bool texture_loaded = load_png_texture_data("./assets/f22.png");
+    bool texture_loaded = load_png_texture_data("./assets/f117.png");
     if (!texture_loaded) {
         fprintf(stderr, "Error: Failed to load PNG texture\n");
         free(triangles_to_render);
@@ -210,7 +213,7 @@ void process_input(void)
                 }
 
                 // Update camera orientation based on mouse movement
-                update_mouse_camera_view(&mouse_camera, mouse_x_rel, mouse_y_rel, delta_time_seconds);
+                update_mouse_camera_view(mouse_camera, mouse_x_rel, mouse_y_rel);
             }
             break;
 
@@ -286,7 +289,7 @@ void process_input(void)
     }
 
     // Update camera position based on movement keys
-    move_mouse_camera(&mouse_camera, movement_forward, movement_right, movement_up, delta_time_seconds);
+    move_mouse_camera(mouse_camera, movement_forward, movement_right, movement_up, delta_time_seconds);
 }
 
 /* --------- Update Game State --------- */
@@ -309,7 +312,7 @@ void update(void)
 
     // Generate matrices for this frame
     world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
-    camera_matrix = get_mouse_camera_view_matrix(&mouse_camera);
+    camera_matrix = get_mouse_camera_view_matrix(mouse_camera);
 
     /* ------- Process Mesh Faces ------- */
     // Reset the triangle count for this frame
@@ -535,11 +538,18 @@ void cleanup_mesh_resources(void)
     }
 }
 
+void cleanup_camera_resources(void)
+{
+	destroy_look_at_camera(lookat_camera);
+	destroy_mouse_camera(mouse_camera);
+}
+
 /* --------- Resource Cleanup --------- */
 void cleanup_resources(void)
 {
     // Free mesh resources
     cleanup_mesh_resources();
+    cleanup_camera_resources();
 
     // Clean up texture
     if (png_texture) {
