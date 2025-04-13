@@ -47,7 +47,6 @@ void fill_flat_bottom_triangle(int x0, int y0, float inv_w0, int x1, int y1, flo
 {
     const int window_width = get_window_width();
 	const int window_height = get_window_height();
-	float* z_buffer = get_z_buffer();
 
     // Calculate inverse screen slopes for X coordinates
     const float inv_slope_x_left = calculate_inverse_slope(x0, y0, x1, y1);
@@ -101,10 +100,10 @@ void fill_flat_bottom_triangle(int x0, int y0, float inv_w0, int x1, int y1, flo
             {
                 // Z-Buffer Test: Check if pixel is valid and closer than existing depth
             // Larger 1/w means closer.
-                if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+                if (current_inv_w > get_z_buffer_at(x, y) && fabsf(current_inv_w) > EPSILON)
                 {
                     draw_pixel(x, y, color);
-                    z_buffer[(window_width * y) + x] = current_inv_w; // Update depth buffer
+					set_z_buffer_at(x, y, current_inv_w);
                 }
                 // Increment 1/w for the next pixel
                 current_inv_w += inv_w_step;
@@ -124,7 +123,6 @@ void fill_flat_top_triangle(int x0, int y0, float inv_w0, int x1, int y1, float 
 {
     const int window_width = get_window_width();
     const int window_height = get_window_height();
-    float* z_buffer = get_z_buffer();
     // Calculate inverse screen slopes for X coordinates (from bottom vertex up)
     const float inv_slope_x_left = calculate_inverse_slope(x2, y2, x0, y0);
     const float inv_slope_x_right = calculate_inverse_slope(x2, y2, x1, y1);
@@ -176,10 +174,10 @@ void fill_flat_top_triangle(int x0, int y0, float inv_w0, int x1, int y1, float 
             if (x >= 0 && x < window_width && y >= 0 && y < window_height)
             {
                 // Z-Buffer Test
-                if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+                if (current_inv_w > get_z_buffer_at(x, y) && fabsf(current_inv_w) > EPSILON)
                 {
                     draw_pixel(x, y, color);
-                    z_buffer[(window_width * y) + x] = current_inv_w;
+					set_z_buffer_at(x, y, current_inv_w);
                 }
                 // Increment 1/w
                 current_inv_w += inv_w_step;
@@ -261,7 +259,6 @@ void texture_flat_bottom_triangle_perspective(
 {
     const int window_width = get_window_width();
     const int window_height = get_window_height();
-    float* z_buffer = get_z_buffer();
     // Calculate the inverse screen-space slopes (dx/dy) of the two non-horizontal edges.
     // These tell us how much the screen X coordinate changes for each step in Y.
     float inv_slope_1 = calculate_inverse_slope(x0, y0, x1, y1); // Left edge (0->1) slope
@@ -342,7 +339,7 @@ void texture_flat_bottom_triangle_perspective(
                 // Z-Buffer Check & Perspective Safety Check
                 // Check if 1/w is valid AND if it's closer than what's in the buffer
                 // Larger 1/w means closer to the camera.
-                if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+                if (current_inv_w > get_z_buffer_at(x, y) && fabsf(current_inv_w) > EPSILON)
                 {
                     // --- Perspective Correction ---
                     const float current_w = 1.0f / current_inv_w;
@@ -363,7 +360,7 @@ void texture_flat_bottom_triangle_perspective(
                     draw_pixel(x, y, texel_color);
 
                     // --- Update Z-Buffer ---
-                    z_buffer[(window_width * y) + x] = current_inv_w; // Store 1/w
+					set_z_buffer_at(x, y, current_inv_w); // Update depth buffer
                 }
 
                 // --- Increment Horizontal Interpolators (always happens) ---
@@ -400,7 +397,6 @@ void texture_flat_top_triangle_perspective(
 {
     const int window_width = get_window_width();
     const int window_height = get_window_height();
-    float* z_buffer = get_z_buffer();
     // Calculate the inverse screen-space slopes (dx/dy) of the two non-horizontal edges,
     // starting from the bottom vertex (x2, y2).
     float inv_slope_1 = calculate_inverse_slope(x2, y2, x0, y0); // Left edge (2->0) slope
@@ -478,7 +474,7 @@ void texture_flat_top_triangle_perspective(
                 // Z-Buffer Check & Perspective Safety Check
             // Check if 1/w is valid AND if it's closer than what's in the buffer
             // Larger 1/w means closer to the camera.
-                if (current_inv_w > z_buffer[(window_width * y) + x] && fabsf(current_inv_w) > EPSILON)
+                if (current_inv_w > get_z_buffer_at(x, y) && fabsf(current_inv_w) > EPSILON)
                 {
                     // --- Perspective Correction ---
                     const float current_w = 1.0f / current_inv_w;
@@ -499,7 +495,7 @@ void texture_flat_top_triangle_perspective(
                     draw_pixel(x, y, texel_color);
 
                     // --- Update Z-Buffer ---
-                    z_buffer[(window_width * y) + x] = current_inv_w; // Store 1/w
+					set_z_buffer_at(x, y, current_inv_w); // Update depth buffer
                 }
 
                 // --- Increment Horizontal Interpolators (always happens) ---

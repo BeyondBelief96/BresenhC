@@ -117,7 +117,21 @@ SDL_Renderer* get_renderer(void);
  *
  * @return A pointer to the color buffer.
  */
-uint32_t* get_color_buffer(void);
+uint32_t get_color_buffer_at(int x, int y);
+
+/**
+ * @brief Sets the color buffer at the specified coordinates.
+ *
+ * This function sets the color of a pixel in the color buffer at the specified
+ * coordinates.
+ *
+ * @param x The x coordinate of the pixel.
+ * @param y The y coordinate of the pixel.
+ * @param color The color to set (in ARGB format).
+ *
+ * @return void
+ */
+void set_color_buffer_at(int x, int y, uint32_t color);
 
 /**
  * @brief Gets the z-buffer.
@@ -126,7 +140,21 @@ uint32_t* get_color_buffer(void);
  *
  * @return A pointer to the z-buffer.
  */
-float* get_z_buffer(void);
+float get_z_buffer_at(int x, int y);
+
+/**
+ * @brief Sets the z-buffer at the specified coordinates.
+ *
+ * This function sets the depth value of a pixel in the z-buffer at the specified
+ * coordinates.
+ *
+ * @param x The x coordinate of the pixel.
+ * @param y The y coordinate of the pixel.
+ * @param depth The depth value to set (higher means closer).
+ *
+ * @return void
+ */
+void set_z_buffer_at(int x, int y, float depth);
 
 /**
  * @brief Gets the color buffer texture.

@@ -181,14 +181,45 @@ SDL_Renderer* get_renderer(void)
     return renderer;
 }
 
-uint32_t* get_color_buffer(void)
+uint32_t get_color_buffer_at(int x, int y)
 {
-    return color_buffer;
+	if (x < 0 || x >= window_width || y < 0 || y >= window_height || !color_buffer)
+	{
+		fprintf(stderr, "Error: Coordinates out of bounds or color buffer not initialized\n");
+		return 0xFFFFFFFF; // Return white color for out-of-bounds access
+	}
+	return color_buffer[(window_width * y) + x];
 }
 
-float* get_z_buffer(void)
+void set_color_buffer_at(int x, int y, uint32_t color)
 {
-    return z_buffer;
+	if (x < 0 || x >= window_width || y < 0 || y >= window_height || !color_buffer)
+	{
+		fprintf(stderr, "Error: Coordinates out of bounds or color buffer not initialized\n");
+		return;
+	}
+	color_buffer[(window_width * y) + x] = color;
+}
+
+float get_z_buffer_at(int x, int y)
+{
+	if (x < 0 || x >= window_width || y < 0 || y >= window_height || !z_buffer)
+	{
+		fprintf(stderr, "Error: Coordinates out of bounds or z-buffer not initialized\n");
+        return 1.0f;
+	}
+
+	return z_buffer[(window_width * y) + x];
+}
+
+void set_z_buffer_at(int x, int y, float depth)
+{
+	if (x < 0 || x >= window_width || y < 0 || y >= window_height || !z_buffer)
+	{
+		fprintf(stderr, "Error: Coordinates out of bounds or z-buffer not initialized\n");
+		return;
+	}
+	z_buffer[(window_width * y) + x] = depth;
 }
 
 SDL_Texture* get_color_buffer_texture(void)
