@@ -19,6 +19,8 @@
 #include "brh_camera.h"
 #include "brh_clipping.h"
 #include "brh_geometry.h"
+#include "brh_mesh_manager.h"
+#include "brh_texture_manager.h"
 
 /* --------- Global Variables --------- */
 bool is_running = true;
@@ -47,6 +49,9 @@ int triangles_to_render_count = 0;
 
 brh_look_at_camera* lookat_camera = NULL;
 brh_mouse_camera* mouse_camera = NULL;
+
+brh_mesh_handle mesh_handle = NULL;
+brh_texture_handle texture_handle = NULL;
 
 /* --------- Function Declarations --------- */
 bool initialize_resources(void);
@@ -138,46 +143,44 @@ void initialize_global_light(void)
 /* Helper to load mesh and related resources */
 bool load_mesh_resources(void)
 {
-    /* Load 3D mesh */
-    bool loaded = load_obj("./assets/f117.obj", &mesh, true);
-    if (!loaded) {
-        fprintf(stderr, "Error: Failed to load OBJ file\n");
+    /* Load the mesh using the mesh manager */
+    mesh_handle = load_mesh("./assets/f117.obj", true);
+    if (!mesh_handle) {
+        fprintf(stderr, "Error: Failed to load mesh from file\n");
+        return false;
+    }
+
+    /* Get the mesh data to calculate the number of faces */
+    brh_mesh* mesh_data = get_mesh_data(mesh_handle);
+    if (!mesh_data) {
+        fprintf(stderr, "Error: Failed to retrieve mesh data\n");
+        unload_mesh(mesh_handle);
+        return false;
+    }
+
+    int num_faces = array_length(mesh_data->faces);
+    if (num_faces <= 0) {
+        fprintf(stderr, "Error: Mesh loaded with zero faces\n");
+        unload_mesh(mesh_handle);
         return false;
     }
 
     /* Allocate triangle buffer */
-    int num_faces = array_length(mesh.faces);
-    if (num_faces <= 0) {
-        fprintf(stderr, "Error: Mesh loaded with zero faces\n");
-        array_free(mesh.vertices);
-        array_free(mesh.faces);
-        array_free(mesh.texcoords);
-        array_free(mesh.normals);
-        return false;
-    }
-
     triangles_to_render_capacity = num_faces;
     triangles_to_render = (brh_triangle*)malloc(sizeof(brh_triangle) * triangles_to_render_capacity);
-
     if (!triangles_to_render) {
         fprintf(stderr, "Error: Failed to allocate triangle render buffer\n");
-        array_free(mesh.vertices);
-        array_free(mesh.faces);
-        array_free(mesh.texcoords);
-        array_free(mesh.normals);
+        unload_mesh(mesh_handle);
         return false;
     }
 
-    /* Load texture */
-    bool texture_loaded = load_png_texture_data("./assets/f117.png");
-    if (!texture_loaded) {
-        fprintf(stderr, "Error: Failed to load PNG texture\n");
+    /* Load the texture using the texture manager */
+    texture_handle = load_texture("./assets/f117.png");
+    if (!texture_handle) {
+        fprintf(stderr, "Error: Failed to load texture from file\n");
         free(triangles_to_render);
         triangles_to_render = NULL;
-        array_free(mesh.vertices);
-        array_free(mesh.faces);
-        array_free(mesh.texcoords);
-        array_free(mesh.normals);
+        unload_mesh(mesh_handle);
         return false;
     }
 
@@ -295,139 +298,105 @@ void process_input(void)
 /* --------- Update Game State --------- */
 void update(void)
 {
-    /* ------- Frame Timing Management ------- */
-    // Cap frame rate to target FPS
+    /* Frame timing management (unchanged) */
     uint32_t time_to_wait = FRAME_TARGET_TIME - ((uint32_t)SDL_GetTicks() - previous_frame_time);
     if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
         SDL_Delay(time_to_wait);
     }
-
-    // Calculate delta time factor converted to seconds to update our game objects in a consistent manner.
     delta_time_seconds = (SDL_GetTicks() - previous_frame_time) / 1000.0f;
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
-    /* ------- Update Model Transform ------- */
-    // Position model in front of camera
-    mesh.translation.z = 5.0f;
+    /* Get the mesh data */
+    brh_mesh* mesh_data = get_mesh_data(mesh_handle);
+    if (!mesh_data) {
+        fprintf(stderr, "Error: Failed to retrieve mesh data during update\n");
+        return;
+    }
 
-    // Generate matrices for this frame
-    world_matrix = mat4_create_world_matrix(mesh.translation, mesh.rotation, mesh.scale);
+    /* Update the mesh transformation */
+    mesh_data->translation.z = 5.0f;
+    world_matrix = mat4_create_world_matrix(mesh_data->translation, mesh_data->rotation, mesh_data->scale);
     camera_matrix = get_mouse_camera_view_matrix(mouse_camera);
 
-    /* ------- Process Mesh Faces ------- */
-    // Reset the triangle count for this frame
+    /* Process mesh faces (unchanged, but using mesh_data) */
     triangles_to_render_count = 0;
-
-    int num_faces = array_length(mesh.faces);
-    int num_texcoords = array_length(mesh.texcoords);
+    int num_faces = array_length(mesh_data->faces);
+    int num_texcoords = array_length(mesh_data->texcoords);
     int num_clipped_triangles = 0;
-
-    // Temporary triangle buffer for clipping
     brh_triangle clipped_triangles[MAX_CLIPPED_TRIANGLES];
 
-    // Process each face, transforming vertices and culling as needed
     for (int i = 0; i < num_faces && triangles_to_render_count < triangles_to_render_capacity; i++) {
-        brh_face face = mesh.faces[i];
+        brh_face face = mesh_data->faces[i];
         brh_vector3 face_vertices_model[3];
         brh_vector4 face_vertices_world[3];
         brh_vector4 face_vertices_camera[3];
         brh_vertex triangle_vertices[3];
         brh_texel face_texels[3] = { {0, 0}, {0, 0}, {0, 0} };
 
-        // Get vertices from mesh
-        face_vertices_model[0] = mesh.vertices[face.a];
-        face_vertices_model[1] = mesh.vertices[face.b];
-        face_vertices_model[2] = mesh.vertices[face.c];
+        face_vertices_model[0] = mesh_data->vertices[face.a];
+        face_vertices_model[1] = mesh_data->vertices[face.b];
+        face_vertices_model[2] = mesh_data->vertices[face.c];
 
-        // Get texture coordinates if available
         if (num_texcoords > 0) {
-            if (face.a_vt < num_texcoords) face_texels[0] = mesh.texcoords[face.a_vt];
-            if (face.b_vt < num_texcoords) face_texels[1] = mesh.texcoords[face.b_vt];
-            if (face.c_vt < num_texcoords) face_texels[2] = mesh.texcoords[face.c_vt];
+            if (face.a_vt < num_texcoords) face_texels[0] = mesh_data->texcoords[face.a_vt];
+            if (face.b_vt < num_texcoords) face_texels[1] = mesh_data->texcoords[face.b_vt];
+            if (face.c_vt < num_texcoords) face_texels[2] = mesh_data->texcoords[face.c_vt];
         }
 
-        /* --- Transform vertices through the rendering pipeline --- */
-
+        /* Transform vertices and process as before */
         for (int j = 0; j < 3; j++) {
-            // Transform from model space to world space
             brh_vector4 world_vertex = vec4_from_vec3(face_vertices_model[j]);
             mat4_mul_vec4_ref(&world_matrix, &world_vertex);
             face_vertices_world[j] = world_vertex;
 
-            // Transform from world space to camera (view) space
             brh_vector4 camera_vertex = face_vertices_world[j];
             mat4_mul_vec4_ref(&camera_matrix, &camera_vertex);
             face_vertices_camera[j] = camera_vertex;
 
-            // Transform from camera space to clip space
-            brh_vector4 clip_vertex = mat4_mul_vec4(
-                &perspective_projection_matrix,
-                camera_vertex
-            );
-
-            // Store inverse W for perspective correction
+            brh_vector4 clip_vertex = mat4_mul_vec4(&perspective_projection_matrix, camera_vertex);
             float original_w = clip_vertex.w;
             triangle_vertices[j].inv_w = 1.0f / original_w;
-
-            // Save the clip space position in the vertex (for clipping)
             triangle_vertices[j].position = clip_vertex;
-
-            // Assign texture coordinates
             triangle_vertices[j].texel = face_texels[j];
         }
 
-        /* --- Backface Culling --- */
         if (get_cull_method() == CULL_BACKFACE) {
             brh_vector3 vecA_camera = vec3_from_vec4(face_vertices_camera[0]);
             brh_vector3 vecB_camera = vec3_from_vec4(face_vertices_camera[1]);
             brh_vector3 vecC_camera = vec3_from_vec4(face_vertices_camera[2]);
             brh_vector3 face_normal = get_face_normal(vecA_camera, vecB_camera, vecC_camera);
 
-            // Calculate view vector (from face to camera)
             brh_vector3 origin = { 0.0f, 0.0f, 0.0f };
             brh_vector3 view_vector = vec3_subtract(origin, vecA_camera);
             float angle_dot_product = vec3_dot(face_normal, view_vector);
 
             if (angle_dot_product < 0) {
-                continue; // Skip this face if it's backfacing
+                continue;
             }
         }
 
-        /* --- Add triangle to render buffer if visible --- */
-        // Calculate face normal for lighting
         brh_vector3 vecA_world = vec3_from_vec4(face_vertices_world[0]);
         brh_vector3 vecB_world = vec3_from_vec4(face_vertices_world[1]);
         brh_vector3 vecC_world = vec3_from_vec4(face_vertices_world[2]);
         brh_vector3 face_normal = get_face_normal(vecA_world, vecB_world, vecC_world);
 
-        // Apply flat shading
         uint32_t triangle_color = calculate_flat_shading_color(face_normal, face.color);
-
-        // Set normal for all vertices (flat shading)
         triangle_vertices[0].normal = face_normal;
         triangle_vertices[1].normal = face_normal;
         triangle_vertices[2].normal = face_normal;
 
-        // Create triangle
         brh_triangle clip_space_triangle = {
             .vertices = { triangle_vertices[0], triangle_vertices[1], triangle_vertices[2] },
             .color = triangle_color,
         };
 
-        // Clip the triangle against the clipping planes
         num_clipped_triangles = clip_triangle(&clip_space_triangle, clipped_triangles);
 
-        // Process each clipped triangle (could be 0, 1, or multiple)
         for (int j = 0; j < num_clipped_triangles && triangles_to_render_count < triangles_to_render_capacity; j++) {
-            // Create a projected triangle from the clipped triangle
             brh_triangle triangle_to_render = clipped_triangles[j];
 
-            // Perform perspective division and viewport transformation for each vertex
             for (int k = 0; k < 3; k++) {
-                // Get original clip space position
                 brh_vector4 clip_pos = triangle_to_render.vertices[k].position;
-
-                // Perform perspective division (clip space to NDC)
                 float inv_w = 1.0f / clip_pos.w;
                 brh_vector4 ndc_vertex;
                 ndc_vertex.x = clip_pos.x * inv_w;
@@ -435,23 +404,19 @@ void update(void)
                 ndc_vertex.z = clip_pos.z * inv_w;
                 ndc_vertex.w = clip_pos.w;
 
-                // Update the vertex with viewport transformation (NDC to screen space)n 
                 triangle_to_render.vertices[k].position.x = (ndc_vertex.x + 1.0f) * 0.5f * (float)get_window_width();
                 triangle_to_render.vertices[k].position.y = (1.0f - ndc_vertex.y) * 0.5f * (float)get_window_height();
-                triangle_to_render.vertices[k].position.z = ndc_vertex.z; // Now in NDC space [-1,1]
-                triangle_to_render.vertices[k].position.w = clip_pos.w;   // Preserve W for later use
-                triangle_to_render.vertices[k].inv_w = inv_w;             // Update inv_w for perspective correction
+                triangle_to_render.vertices[k].position.z = ndc_vertex.z;
+                triangle_to_render.vertices[k].position.w = clip_pos.w;
+                triangle_to_render.vertices[k].inv_w = inv_w;
             }
 
-            // Add the projected triangle to the render buffer
             triangles_to_render[triangles_to_render_count++] = triangle_to_render;
         }
 
-        // Check if we've hit capacity and need to stop processing
         if (triangles_to_render_count >= triangles_to_render_capacity) {
-            fprintf(stderr, "Warning: Triangle buffer filled to capacity (%d triangles)\n",
-                triangles_to_render_capacity);
-            break; // Exit the face processing loop
+            fprintf(stderr, "Warning: Triangle buffer filled to capacity (%d triangles)\n", triangles_to_render_capacity);
+            break;
         }
     }
 }
@@ -481,7 +446,7 @@ void render(void)
         /* Draw textured triangles if required */
         if (current_render_method == RENDER_TEXTURED ||
             current_render_method == RENDER_TEXTURED_WIREFRAME) {
-            draw_textured_triangle(triangle, mesh_texture_data);
+            draw_textured_triangle(triangle, texture_handle);
         }
 
         /* Draw wireframe if required */
@@ -517,24 +482,15 @@ void cleanup_mesh_resources(void)
         triangles_to_render = NULL;
     }
 
-    if (mesh.vertices) {
-        array_free(mesh.vertices);
-        mesh.vertices = NULL;
+    /* Unload the mesh and texture using the managers */
+    if (mesh_handle) {
+        unload_mesh(mesh_handle);
+        mesh_handle = NULL;
     }
 
-    if (mesh.faces) {
-        array_free(mesh.faces);
-        mesh.faces = NULL;
-    }
-
-    if (mesh.texcoords) {
-        array_free(mesh.texcoords);
-        mesh.texcoords = NULL;
-    }
-
-    if (mesh.normals) {
-        array_free(mesh.normals);
-        mesh.normals = NULL;
+    if (texture_handle) {
+        unload_texture(texture_handle);
+        texture_handle = NULL;
     }
 }
 
@@ -550,12 +506,6 @@ void cleanup_resources(void)
     // Free mesh resources
     cleanup_mesh_resources();
     cleanup_camera_resources();
-
-    // Clean up texture
-    if (png_texture) {
-        upng_free(png_texture);
-        png_texture = NULL;
-    }
 
     // Clean up display resources
     cleanup_display_resources();

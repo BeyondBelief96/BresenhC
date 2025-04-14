@@ -2,7 +2,8 @@
 
 #include <stdint.h>
 #include "brh_vector.h" 
-#include "brh_texture.h" 
+#include "brh_texture.h"
+#include "brh_texture_manager.h"
 
 // Structure to hold perspective-correct attributes for perspective-correct texture mapping
 typedef struct {
@@ -97,7 +98,7 @@ void draw_filled_triangle(brh_triangle* triangle, uint32_t color);
  *                 internally for sorting, hence not const.
  * @param texture Pointer to the loaded texture data (array of uint32_t colors).
  */
-void draw_textured_triangle(brh_triangle* triangle, uint32_t* texture);
+void draw_textured_triangle(brh_triangle* triangle, brh_texture_handle texture);
 
 /**
  * @brief Calculates the barycentric coordinates of a point P relative to a triangle ABC.

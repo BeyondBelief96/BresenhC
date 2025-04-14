@@ -3,6 +3,9 @@
 #include "brh_matrix.h"
 #include "brh_clipping.h"
 #include "brh_display.h"
+#include "brh_light.h"
+#include "array.h"
+#include "math_utils.h"
 
 #define MAX_SCENE_OBJECTS 256  // Maximum number of objects in the scene
 

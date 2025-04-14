@@ -23,13 +23,13 @@ static void texture_flat_bottom_triangle_perspective(
     int x0, int y0, brh_perspective_attribs pa0,
     int x1, int y1, brh_perspective_attribs pa1,
     int x2, int y2, brh_perspective_attribs pa2,
-    const uint32_t* texture);
+    const uint32_t* texture, int texture_width, int texture_height);
 
 static void texture_flat_top_triangle_perspective(
     int x0, int y0, brh_perspective_attribs pa0,
     int x1, int y1, brh_perspective_attribs pa1,
     int x2, int y2, brh_perspective_attribs pa2,
-    const uint32_t* texture);
+    const uint32_t* texture, int texture_width, int texture_height);
 
 
 // Helper function to swap perspective attributes
@@ -251,11 +251,11 @@ void draw_filled_triangle(brh_triangle* triangle, uint32_t color)
 //        /   \
 // (x1,y1)-----(x2,y2) pa1, pa2
 ///////////////////////////////////////////////////////////////////////////////
-void texture_flat_bottom_triangle_perspective(
-    int x0, int y0, brh_perspective_attribs pa0, // Top vertex data
-    int x1, int y1, brh_perspective_attribs pa1, // Bottom-left vertex data
-    int x2, int y2, brh_perspective_attribs pa2, // Bottom-right vertex data
-    const uint32_t* texture)                          // Texture data
+static void texture_flat_bottom_triangle_perspective(
+    int x0, int y0, brh_perspective_attribs pa0,
+    int x1, int y1, brh_perspective_attribs pa1,
+    int x2, int y2, brh_perspective_attribs pa2,
+    const uint32_t* texture, int texture_width, int texture_height)
 {
     const int window_width = get_window_width();
     const int window_height = get_window_height();
@@ -389,11 +389,11 @@ void texture_flat_bottom_triangle_perspective(
 //       \       /
 //        (x2,y2) pa2
 ///////////////////////////////////////////////////////////////////////////////
-void texture_flat_top_triangle_perspective(
-    int x0, int y0, brh_perspective_attribs pa0, // Top-left vertex data
-    int x1, int y1, brh_perspective_attribs pa1, // Top-right vertex data
-    int x2, int y2, brh_perspective_attribs pa2, // Bottom vertex data
-    const uint32_t* texture)                          // Texture data
+static void texture_flat_top_triangle_perspective(
+    int x0, int y0, brh_perspective_attribs pa0,
+    int x1, int y1, brh_perspective_attribs pa1,
+    int x2, int y2, brh_perspective_attribs pa2,
+    const uint32_t* texture, int texture_width, int texture_height)                        // Texture data
 {
     const int window_width = get_window_width();
     const int window_height = get_window_height();
@@ -526,10 +526,20 @@ void draw_triangle_outline(const brh_triangle* triangle, uint32_t color)
 ///////////////////////////////////////////////////////////////////////////////
 // Draw a PERSPECTIVE-CORRECT textured triangle using scanline rasterization
 ///////////////////////////////////////////////////////////////////////////////
-void draw_textured_triangle(brh_triangle* triangle, uint32_t* texture)
+void draw_textured_triangle(brh_triangle* triangle, brh_texture_handle texture_handle)
 {
-    if (!texture) {
-        fprintf(stderr, "Error: Texture data not loaded or passed incorrectly.\n");
+    if (!texture_handle) {
+        fprintf(stderr, "Error: Invalid texture handle.\n");
+        return;
+    }
+
+    // Retrieve texture data, width, and height using the texture manager
+    uint32_t* texture_data = get_texture_data(texture_handle);
+    int texture_width = get_texture_width(texture_handle);
+    int texture_height = get_texture_height(texture_handle);
+
+    if (!texture_data || texture_width <= 0 || texture_height <= 0) {
+        fprintf(stderr, "Error: Failed to retrieve texture data or dimensions.\n");
         return;
     }
 
@@ -544,33 +554,29 @@ void draw_textured_triangle(brh_triangle* triangle, uint32_t* texture)
     brh_texel t1 = triangle->vertices[1].texel;
 
     int x2 = (int)triangle->vertices[2].position.x;
-    int y2 = (int)triangle->vertices[2].position.y; 
+    int y2 = (int)triangle->vertices[2].position.y;
     float inv_w2 = triangle->vertices[2].inv_w;
     brh_texel t2 = triangle->vertices[2].texel;
 
     brh_perspective_attribs pa0, pa1, pa2;
-    if (fabsf(inv_w0) < EPSILON || fabsf(inv_w1) < EPSILON || fabsf(inv_w2) < EPSILON)
-    {
-        return; 
+    if (fabsf(inv_w0) < EPSILON || fabsf(inv_w1) < EPSILON || fabsf(inv_w2) < EPSILON) {
+        return;
     }
     pa0 = (brh_perspective_attribs){ .u_over_w = t0.u * inv_w0, .v_over_w = t0.v * inv_w0, .inv_w = inv_w0 };
     pa1 = (brh_perspective_attribs){ .u_over_w = t1.u * inv_w1, .v_over_w = t1.v * inv_w1, .inv_w = inv_w1 };
     pa2 = (brh_perspective_attribs){ .u_over_w = t2.u * inv_w2, .v_over_w = t2.v * inv_w2, .inv_w = inv_w2 };
 
-    if (y0 > y1)
-    { 
+    if (y0 > y1) {
         swap_int(&x0, &x1);
         swap_int(&y0, &y1);
-        swap_perspective_attribs(&pa0, &pa1); 
+        swap_perspective_attribs(&pa0, &pa1);
     }
-    if (y1 > y2) 
-    {
+    if (y1 > y2) {
         swap_int(&x1, &x2);
-        swap_int(&y1, &y2); 
+        swap_int(&y1, &y2);
         swap_perspective_attribs(&pa1, &pa2);
     }
-    if (y0 > y1) 
-    {
+    if (y0 > y1) {
         swap_int(&x0, &x1);
         swap_int(&y0, &y1);
         swap_perspective_attribs(&pa0, &pa1);
@@ -578,21 +584,22 @@ void draw_textured_triangle(brh_triangle* triangle, uint32_t* texture)
 
     assert(y0 <= y1 && y1 <= y2);
 
-    if (y2 == y0) { return; }
+    if (y2 == y0) {
+        return;
+    }
 
     // --- Triangle Rasterization using Flat-Top/Flat-Bottom Decomposition ---
     if (y1 == y2) {
         // Flat Bottom case
-        texture_flat_bottom_triangle_perspective(x0, y0, pa0, x1, y1, pa1, x2, y2, pa2, texture);
+        texture_flat_bottom_triangle_perspective(x0, y0, pa0, x1, y1, pa1, x2, y2, pa2, texture_data, texture_width, texture_height);
     }
     else if (y0 == y1) {
         // Flat Top case
-        texture_flat_top_triangle_perspective(x0, y0, pa0, x1, y1, pa1, x2, y2, pa2, texture);
+        texture_flat_top_triangle_perspective(x0, y0, pa0, x1, y1, pa1, x2, y2, pa2, texture_data, texture_width, texture_height);
     }
     else {
         // General triangle: Split
         int my = y1;
-        // Use roundf for midpoint X for consistency with scanline start/end
         int mx = (int)roundf(interpolate_x_from_y(x0, y0, x2, y2, my));
 
         float y_delta_total = (float)(y2 - y0);
@@ -601,19 +608,21 @@ void draw_textured_triangle(brh_triangle* triangle, uint32_t* texture)
 
         brh_perspective_attribs pam; // Midpoint perspective attributes
         pam.inv_w = interpolate_float(pa0.inv_w, pa2.inv_w, lerp_factor_y);
-        if (fabsf(pam.inv_w) < EPSILON) { return; } // Skip if midpoint unusable
+        if (fabsf(pam.inv_w) < EPSILON) {
+            return;
+        }
         pam.u_over_w = interpolate_float(pa0.u_over_w, pa2.u_over_w, lerp_factor_y);
         pam.v_over_w = interpolate_float(pa0.v_over_w, pa2.v_over_w, lerp_factor_y);
 
         // Draw top part (Flat Bottom: V0, V1, M)
-        texture_flat_bottom_triangle_perspective(x0, y0, pa0, x1, y1, pa1, mx, my, pam, texture);
+        texture_flat_bottom_triangle_perspective(x0, y0, pa0, x1, y1, pa1, mx, my, pam, texture_data, texture_width, texture_height);
 
         // Draw bottom part (Flat Top: V1, M, V2)
         if (x1 < mx) {
-            texture_flat_top_triangle_perspective(x1, y1, pa1, mx, my, pam, x2, y2, pa2, texture);
+            texture_flat_top_triangle_perspective(x1, y1, pa1, mx, my, pam, x2, y2, pa2, texture_data, texture_width, texture_height);
         }
         else {
-            texture_flat_top_triangle_perspective(mx, my, pam, x1, y1, pa1, x2, y2, pa2, texture);
+            texture_flat_top_triangle_perspective(mx, my, pam, x1, y1, pa1, x2, y2, pa2, texture_data, texture_width, texture_height);
         }
     }
 }
