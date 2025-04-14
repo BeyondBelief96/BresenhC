@@ -48,9 +48,6 @@
     <ClCompile Include="src\brh_face.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\brh_texture.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\upng.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,13 +60,16 @@
     <ClCompile Include="src\brh_geometry.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\brh_mesh_manager.h">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\brh_mesh_manager.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\brh_texture_manager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_renderable.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_scene.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,9 +107,6 @@
     <ClInclude Include="include\brh_face.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\brh_texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\upng.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -123,6 +120,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\brh_texture_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_mesh_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_renderable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

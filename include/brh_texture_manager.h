@@ -2,7 +2,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "brh_texture.h"
 
 // Opaque handle to a texture (hides implementation details)
 typedef struct brh_texture_handle_t* brh_texture_handle;

@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 #include "brh_vector.h"
-#include "brh_texture.h"
-
 
 /**
  * @struct brh_face

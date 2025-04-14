@@ -2,8 +2,28 @@
 
 #include <stdint.h>
 #include "brh_vector.h" 
-#include "brh_texture.h"
 #include "brh_texture_manager.h"
+
+/*
+* @struct brh_texel
+* 
+* @brief Represents a 2D texture coordinate (u, v).
+* 
+* This structure is used to store texture coordinates for a vertex in a triangle.
+* 
+* @var brh_texel::u
+* The horizontal coordinate of the texture (0.0 to 1.0).
+* 
+* @var brh_texel::v
+* The vertical coordinate of the texture (0.0 to 1.0).
+* 
+* @note The coordinates are typically in the range [0.0, 1.0], but can be outside this range for texture wrapping.
+*/
+typedef struct brh_texel {
+    float u;
+    float v;
+} brh_texel;
+
 
 // Structure to hold perspective-correct attributes for perspective-correct texture mapping
 typedef struct {

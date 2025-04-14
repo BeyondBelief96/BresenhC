@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include "brh_triangle.h"
 #include "brh_vector.h"
-#include "brh_texture.h"
 #include "math_utils.h"
 #include "brh_display.h"
 
