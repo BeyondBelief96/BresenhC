@@ -26,6 +26,11 @@ int get_window_height(void)
     return window_height;
 }
 
+float get_aspect_ratio(void)
+{
+	return (float)window_width / (float)window_height;
+}
+
 void set_window_size(int width, int height)
 {
     window_width = width;

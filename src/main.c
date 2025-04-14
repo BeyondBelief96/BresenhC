@@ -14,7 +14,6 @@
 #include "brh_matrix.h"
 #include "brh_mesh.h"
 #include "array.h"
-#include "model_loader.h"
 #include "brh_light.h"
 #include "brh_camera.h"
 #include "brh_clipping.h"
@@ -36,20 +35,20 @@ int movement_forward = 0;  // -1 for backward, 1 for forward, 0 for none
 int movement_right = 0;    // -1 for left, 1 for right, 0 for none
 int movement_up = 0;       // -1 for down, 1 for up, 0 for none
 
+#define MAX_NUM_RENDERABLES 32
+
 /* Rendering transformation matrices */
-brh_mat4 world_matrix;
 brh_mat4 camera_matrix;
 brh_mat4 perspective_projection_matrix;
-
-/* Triangle buffer for rendering */
-brh_triangle* triangles_to_render = NULL;
-int triangles_to_render_capacity = 0;
-int triangles_to_render_count = 0;
 
 brh_look_at_camera* lookat_camera = NULL;
 brh_mouse_camera* mouse_camera = NULL;
 
-brh_renderable_handle renderable_handle = NULL;
+brh_renderable_handle f117_renderable = NULL;
+brh_renderable_handle f22_renderable = NULL;
+brh_renderable_handle mirage_renderable = NULL;
+
+brh_renderable_handle renderables[MAX_NUM_RENDERABLES];
 
 /* --------- Function Declarations --------- */
 bool initialize_resources(void);
@@ -103,7 +102,7 @@ bool initialize_resources(void)
 
     /* --- Initialize projection matrix --- */
     float fov_radians = degrees_to_radians(get_frustum_fov_y());
-    float aspect_ratio = (float)get_window_width() / (float)get_window_height();
+    float aspect_ratio = get_aspect_ratio();
     perspective_projection_matrix = mat4_create_perspective_projection(
         fov_radians,
         aspect_ratio,
@@ -141,56 +140,40 @@ void initialize_global_light(void)
 /* Helper to load mesh and related resources */
 bool load_mesh_resources(void)
 {
-    /* Load the mesh using the mesh manager */
-    brh_mesh_handle mesh_handle = load_mesh("./assets/f117.obj", true);
-    if (!mesh_handle) {
-        fprintf(stderr, "Error: Failed to load mesh from file\n");
-        return false;
+    // Initialize all renderable slots to NULL
+    for (int i = 0; i < MAX_NUM_RENDERABLES; i++) {
+        renderables[i] = NULL;
     }
 
-    /* Get the mesh data to calculate the number of faces */
-    brh_mesh* mesh_data = get_mesh_data(mesh_handle);
-    if (!mesh_data) {
-        fprintf(stderr, "Error: Failed to retrieve mesh data\n");
-        unload_mesh(mesh_handle);
+    // Create our renderables
+    f117_renderable = create_renderable_from_files("assets/f117.obj", "assets/f117.png");
+    if (!f117_renderable) {
+        fprintf(stderr, "Error: Failed to create F117 renderable\n");
         return false;
     }
+    renderables[0] = f117_renderable;
 
-    int num_faces = array_length(mesh_data->faces);
-    if (num_faces <= 0) {
-        fprintf(stderr, "Error: Mesh loaded with zero faces\n");
-        unload_mesh(mesh_handle);
+    f22_renderable = create_renderable_from_files("assets/f22.obj", "assets/f22.png");
+    if (!f22_renderable) {
+        fprintf(stderr, "Error: Failed to create F22 renderable\n");
+        destroy_renderable(f117_renderable);
         return false;
     }
+    renderables[1] = f22_renderable;
 
-    /* Allocate triangle buffer */
-    triangles_to_render_capacity = num_faces;
-    fprintf(stderr, "Triangle buffer capacity set to %d\n", triangles_to_render_capacity);
-
-    triangles_to_render = (brh_triangle*)malloc(sizeof(brh_triangle) * triangles_to_render_capacity);
-    if (!triangles_to_render) {
-        fprintf(stderr, "Error: Failed to allocate triangle render buffer\n");
-        unload_mesh(mesh_handle);
+    mirage_renderable = create_renderable_from_files("assets/efa.obj", "assets/efa.png");
+    if (!mirage_renderable) {
+        fprintf(stderr, "Error: Failed to create Mirage renderable\n");
+        destroy_renderable(f117_renderable);
+        destroy_renderable(f22_renderable);
         return false;
     }
+    renderables[2] = mirage_renderable;
 
-
-    /* Load the texture using the texture manager */
-    brh_texture_handle texture_handle = load_texture("./assets/f117.png");
-    if (!texture_handle) {
-        fprintf(stderr, "Error: Failed to load texture from file\n");
-        unload_mesh(mesh_handle);
-        return false;
-    }
-
-    /* Create a renderable using the mesh and texture handles */
-    renderable_handle = create_renderable(mesh_handle, texture_handle);
-    if (!renderable_handle) {
-        fprintf(stderr, "Error: Failed to create renderable\n");
-        unload_mesh(mesh_handle);
-        unload_texture(texture_handle);
-        return false;
-    }
+    // Set initial positions
+    set_renderable_position(f117_renderable, (brh_vector3) { -5.0f, 0.0f, 5.0f });
+    set_renderable_position(f22_renderable, (brh_vector3) { 0.0f, 0.0f, 5.0f });
+    set_renderable_position(mirage_renderable, (brh_vector3) { 5.0f, 0.0f, 5.0f });
 
     return true;
 }
@@ -314,122 +297,11 @@ void update(void)
     delta_time_seconds = (SDL_GetTicks() - previous_frame_time) / 1000.0f;
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
-    /* Get the mesh handle from the renderable */
-    brh_mesh_handle mesh_handle = get_renderable_mesh(renderable_handle);
-    brh_mesh* mesh_data = get_mesh_data(mesh_handle);
-    if (!mesh_data) {
-        fprintf(stderr, "Error: Failed to retrieve mesh data during update\n");
-        return;
-    }
-
-    /* Update the renderable's transformation */
-    set_renderable_position(renderable_handle, (brh_vector3) { 0.0f, 0.0f, 5.0f });
-
     /* Get the world matrix from the renderable */
-    world_matrix = get_renderable_world_matrix(renderable_handle);
     camera_matrix = get_mouse_camera_view_matrix(mouse_camera);
 
     /* Process mesh faces (unchanged, but using mesh_data) */
-    triangles_to_render_count = 0;
-    int num_faces = array_length(mesh_data->faces);
-    int num_texcoords = array_length(mesh_data->texcoords);
-    int num_clipped_triangles = 0;
-    brh_triangle clipped_triangles[MAX_CLIPPED_TRIANGLES];
-
-    for (int i = 0; i < num_faces && triangles_to_render_count < triangles_to_render_capacity; i++) {
-        brh_face face = mesh_data->faces[i];
-        brh_vector3 face_vertices_model[3];
-        brh_vector4 face_vertices_world[3];
-        brh_vector4 face_vertices_camera[3];
-        brh_vertex triangle_vertices[3];
-        brh_texel face_texels[3] = { {0, 0}, {0, 0}, {0, 0} };
-
-        face_vertices_model[0] = mesh_data->vertices[face.a];
-        face_vertices_model[1] = mesh_data->vertices[face.b];
-        face_vertices_model[2] = mesh_data->vertices[face.c];
-
-        if (num_texcoords > 0) {
-            if (face.a_vt < num_texcoords) face_texels[0] = mesh_data->texcoords[face.a_vt];
-            if (face.b_vt < num_texcoords) face_texels[1] = mesh_data->texcoords[face.b_vt];
-            if (face.c_vt < num_texcoords) face_texels[2] = mesh_data->texcoords[face.c_vt];
-        }
-
-        /* Transform vertices and process as before */
-        for (int j = 0; j < 3; j++) {
-            brh_vector4 world_vertex = vec4_from_vec3(face_vertices_model[j]);
-            mat4_mul_vec4_ref(&world_matrix, &world_vertex);
-            face_vertices_world[j] = world_vertex;
-
-            brh_vector4 camera_vertex = face_vertices_world[j];
-            mat4_mul_vec4_ref(&camera_matrix, &camera_vertex);
-            face_vertices_camera[j] = camera_vertex;
-
-            brh_vector4 clip_vertex = mat4_mul_vec4(&perspective_projection_matrix, camera_vertex);
-            float original_w = clip_vertex.w;
-            triangle_vertices[j].inv_w = 1.0f / original_w;
-            triangle_vertices[j].position = clip_vertex;
-            triangle_vertices[j].texel = face_texels[j];
-        }
-
-        if (get_cull_method() == CULL_BACKFACE) {
-            brh_vector3 vecA_camera = vec3_from_vec4(face_vertices_camera[0]);
-            brh_vector3 vecB_camera = vec3_from_vec4(face_vertices_camera[1]);
-            brh_vector3 vecC_camera = vec3_from_vec4(face_vertices_camera[2]);
-            brh_vector3 face_normal = get_face_normal(vecA_camera, vecB_camera, vecC_camera);
-
-            brh_vector3 origin = { 0.0f, 0.0f, 0.0f };
-            brh_vector3 view_vector = vec3_subtract(origin, vecA_camera);
-            float angle_dot_product = vec3_dot(face_normal, view_vector);
-
-            if (angle_dot_product < 0) {
-                continue;
-            }
-        }
-
-        brh_vector3 vecA_world = vec3_from_vec4(face_vertices_world[0]);
-        brh_vector3 vecB_world = vec3_from_vec4(face_vertices_world[1]);
-        brh_vector3 vecC_world = vec3_from_vec4(face_vertices_world[2]);
-        brh_vector3 face_normal = get_face_normal(vecA_world, vecB_world, vecC_world);
-
-        uint32_t triangle_color = calculate_flat_shading_color(face_normal, face.color);
-        triangle_vertices[0].normal = face_normal;
-        triangle_vertices[1].normal = face_normal;
-        triangle_vertices[2].normal = face_normal;
-
-        brh_triangle clip_space_triangle = {
-            .vertices = { triangle_vertices[0], triangle_vertices[1], triangle_vertices[2] },
-            .color = triangle_color,
-        };
-
-        num_clipped_triangles = clip_triangle(&clip_space_triangle, clipped_triangles);
-
-        for (int j = 0; j < num_clipped_triangles && triangles_to_render_count < triangles_to_render_capacity; j++) {
-            brh_triangle triangle_to_render = clipped_triangles[j];
-
-            for (int k = 0; k < 3; k++) {
-                brh_vector4 clip_pos = triangle_to_render.vertices[k].position;
-                float inv_w = 1.0f / clip_pos.w;
-                brh_vector4 ndc_vertex;
-                ndc_vertex.x = clip_pos.x * inv_w;
-                ndc_vertex.y = clip_pos.y * inv_w;
-                ndc_vertex.z = clip_pos.z * inv_w;
-                ndc_vertex.w = clip_pos.w;
-
-                triangle_to_render.vertices[k].position.x = (ndc_vertex.x + 1.0f) * 0.5f * (float)get_window_width();
-                triangle_to_render.vertices[k].position.y = (1.0f - ndc_vertex.y) * 0.5f * (float)get_window_height();
-                triangle_to_render.vertices[k].position.z = ndc_vertex.z;
-                triangle_to_render.vertices[k].position.w = clip_pos.w;
-                triangle_to_render.vertices[k].inv_w = inv_w;
-            }
-
-            triangles_to_render[triangles_to_render_count++] = triangle_to_render;
-        }
-
-        if (triangles_to_render_count >= triangles_to_render_capacity) {
-            fprintf(stderr, "Warning: Triangle buffer filled to capacity (%d triangles)\n", triangles_to_render_capacity);
-            break;
-        }
-    }
+    update_renderables(delta_time_seconds, camera_matrix, perspective_projection_matrix); 
 }
 
 /* --------- Render the Scene --------- */
@@ -444,42 +316,48 @@ void render(void)
     /* Draw background grid */
     draw_grid(cell_size, 0xFF333333);  // Dark gray grid
 
-    /* Get the texture handle from the renderable */
-    brh_texture_handle texture_handle = get_renderable_texture(renderable_handle);
+    /* Render each renderable */
+    for (int r = 0; r < MAX_NUM_RENDERABLES; r++) {
+        if (renderables[r] == NULL) continue;
 
-    /* Render all triangles */
-    for (int i = 0; i < triangles_to_render_count; i++) {
-        brh_triangle* triangle = &triangles_to_render[i];
+        brh_texture_handle texture = get_renderable_texture(renderables[r]);
+        brh_triangle* triangles = get_renderable_triangles(renderables[r]);
+        int triangle_count = get_renderable_triangle_count(renderables[r]);
 
-        /* Draw filled triangles if required */
-        if (current_render_method == RENDER_FILL_TRIANGLE ||
-            current_render_method == RENDER_FILL_TRIANGLE_WIREFRAME) {
-            draw_filled_triangle(triangle, triangle->color);
-        }
+        /* Render all triangles for this renderable */
+        for (int i = 0; i < triangle_count; i++) {
+            brh_triangle* triangle = &triangles[i];
 
-        /* Draw textured triangles if required */
-        if (current_render_method == RENDER_TEXTURED ||
-            current_render_method == RENDER_TEXTURED_WIREFRAME) {
-            draw_textured_triangle(triangle, texture_handle);
-        }
+            /* Draw filled triangles if required */
+            if (current_render_method == RENDER_FILL_TRIANGLE ||
+                current_render_method == RENDER_FILL_TRIANGLE_WIREFRAME) {
+                draw_filled_triangle(triangle, triangle->color);
+            }
 
-        /* Draw wireframe if required */
-        if (current_render_method == RENDER_WIREFRAME ||
-            current_render_method == RENDER_WIREFRAME_VERTEX ||
-            current_render_method == RENDER_FILL_TRIANGLE_WIREFRAME ||
-            current_render_method == RENDER_TEXTURED_WIREFRAME) {
-            draw_triangle_outline(triangle, 0xFFFFFFFF);  // White wireframe
-        }
+            /* Draw textured triangles if required */
+            if (current_render_method == RENDER_TEXTURED ||
+                current_render_method == RENDER_TEXTURED_WIREFRAME) {
+                draw_textured_triangle(triangle, texture);
+            }
 
-        /* Draw vertex markers if required */
-        if (current_render_method == RENDER_WIREFRAME_VERTEX) {
-            // Draw red squares at each vertex
-            for (int j = 0; j < 3; j++) {
-                draw_rect(
-                    (int)triangle->vertices[j].position.x - 3,
-                    (int)triangle->vertices[j].position.y - 3,
-                    6, 6, 0xFFFF0000
-                );
+            /* Draw wireframe if required */
+            if (current_render_method == RENDER_WIREFRAME ||
+                current_render_method == RENDER_WIREFRAME_VERTEX ||
+                current_render_method == RENDER_FILL_TRIANGLE_WIREFRAME ||
+                current_render_method == RENDER_TEXTURED_WIREFRAME) {
+                draw_triangle_outline(triangle, 0xFFFFFFFF);  // White wireframe
+            }
+
+            /* Draw vertex markers if required */
+            if (current_render_method == RENDER_WIREFRAME_VERTEX) {
+                // Draw red squares at each vertex
+                for (int j = 0; j < 3; j++) {
+                    draw_rect(
+                        (int)triangle->vertices[j].position.x - 3,
+                        (int)triangle->vertices[j].position.y - 3,
+                        6, 6, 0xFFFF0000
+                    );
+                }
             }
         }
     }
@@ -491,15 +369,10 @@ void render(void)
 /* --------- Mesh Resource Cleanup --------- */
 void cleanup_mesh_resources(void)
 {
-    if (triangles_to_render) {
-        free(triangles_to_render);
-        triangles_to_render = NULL;
-    }
-
     /* Destroy the renderable */
-    if (renderable_handle) {
-        destroy_renderable(renderable_handle);
-        renderable_handle = NULL;
+    if (f117_renderable) {
+        destroy_renderable(f117_renderable);
+        f117_renderable = NULL;
     }
 }
 

@@ -26,7 +26,16 @@ void cleanup_renderable_system(void);
  * @param texture_handle Handle to the texture (can be NULL for untextured objects)
  * @return A handle to the renderable object, or NULL if creation failed
  */
-brh_renderable_handle create_renderable(brh_mesh_handle mesh_handle, brh_texture_handle texture_handle);
+brh_renderable_handle create_renderable(brh_mesh_handle mesh_handle, brh_texture_handle texture_handle); \
+
+/*
+* @brief Create a renderable object from mesh and texture files
+*
+* @param mesh_file Path to the mesh file
+* @param texture_file Path to the texture file (can be NULL for untextured objects)
+* @return A handle to the renderable object, or NULL if creation failed
+*/
+brh_renderable_handle create_renderable_from_files(const char* mesh_file, const char* texture_file);
 
 /**
  * @brief Destroy a renderable object (does not free the mesh or texture)
@@ -83,9 +92,28 @@ brh_mesh_handle get_renderable_mesh(brh_renderable_handle renderable_handle);
  */
 brh_texture_handle get_renderable_texture(brh_renderable_handle renderable_handle);
 
+/*
+* * @brief Get the triangles to render for a renderable object
+* 
+* @param renderable_handle Handle to the renderable object
+* @return Pointer to the array of triangles
+*/
+brh_triangle* get_renderable_triangles(brh_renderable_handle renderable_handle);
+
+/*
+* * @brief Get the number of triangles to render for a renderable object
+* 
+* @param renderable_handle Handle to the renderable object
+* 
+* @return The number of triangles
+*/
+int get_renderable_triangle_count(brh_renderable_handle renderable_handle);
+
 /**
  * @brief Update all renderable objects (called once per frame)
  *
  * @param delta_time Time elapsed since last frame
+ * @param camera_matrix The camera view matrix
+ * @param projection_matrix The projection matrix
  */
-void update_renderables(float delta_time);
+void update_renderables(float delta_time, brh_mat4 camera_matrix, brh_mat4 projection_matrix);

@@ -41,6 +41,15 @@ int get_window_width(void);
 int get_window_height(void);
 
 /*
+* @brief Gets the aspect ratio of the SDL window.
+* 
+* This function calculates the aspect ratio of the SDL window based on its width and height.
+* 
+* @return The aspect ratio of the window (width / height).
+*/
+float get_aspect_ratio(void);
+
+/*
 * @brief Sets the size of the SDL window.
 *
 * This function sets the size of the SDL window to the specified width and height.

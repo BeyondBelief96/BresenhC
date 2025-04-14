@@ -82,7 +82,7 @@ void set_scene_camera(brh_mouse_camera* camera)
 void update_scene(float delta_time)
 {
     // Update all renderable objects
-    update_renderables(delta_time);
+    //update_renderables(delta_time);
 
     // Update camera matrix
     if (active_camera) {
