@@ -5,7 +5,7 @@
 #include "brh_matrix.h"
 
 // Opaque handle to a renderable object (hides implementation details)
-typedef struct brh_renderable_handle_t* brh_renderable_handle;\
+typedef struct brh_renderable_handle_t* brh_renderable_handle;
 
 /**
  * @brief Initialize the renderable object system

@@ -19,8 +19,7 @@
 #include "brh_camera.h"
 #include "brh_clipping.h"
 #include "brh_geometry.h"
-#include "brh_mesh_manager.h"
-#include "brh_texture_manager.h"
+#include "brh_renderable.h"
 
 /* --------- Global Variables --------- */
 bool is_running = true;
@@ -50,8 +49,7 @@ int triangles_to_render_count = 0;
 brh_look_at_camera* lookat_camera = NULL;
 brh_mouse_camera* mouse_camera = NULL;
 
-brh_mesh_handle mesh_handle = NULL;
-brh_texture_handle texture_handle = NULL;
+brh_renderable_handle renderable_handle = NULL;
 
 /* --------- Function Declarations --------- */
 bool initialize_resources(void);
@@ -144,7 +142,7 @@ void initialize_global_light(void)
 bool load_mesh_resources(void)
 {
     /* Load the mesh using the mesh manager */
-    mesh_handle = load_mesh("./assets/f117.obj", true);
+    brh_mesh_handle mesh_handle = load_mesh("./assets/f117.obj", true);
     if (!mesh_handle) {
         fprintf(stderr, "Error: Failed to load mesh from file\n");
         return false;
@@ -167,6 +165,8 @@ bool load_mesh_resources(void)
 
     /* Allocate triangle buffer */
     triangles_to_render_capacity = num_faces;
+    fprintf(stderr, "Triangle buffer capacity set to %d\n", triangles_to_render_capacity);
+
     triangles_to_render = (brh_triangle*)malloc(sizeof(brh_triangle) * triangles_to_render_capacity);
     if (!triangles_to_render) {
         fprintf(stderr, "Error: Failed to allocate triangle render buffer\n");
@@ -174,13 +174,21 @@ bool load_mesh_resources(void)
         return false;
     }
 
+
     /* Load the texture using the texture manager */
-    texture_handle = load_texture("./assets/f117.png");
+    brh_texture_handle texture_handle = load_texture("./assets/f117.png");
     if (!texture_handle) {
         fprintf(stderr, "Error: Failed to load texture from file\n");
-        free(triangles_to_render);
-        triangles_to_render = NULL;
         unload_mesh(mesh_handle);
+        return false;
+    }
+
+    /* Create a renderable using the mesh and texture handles */
+    renderable_handle = create_renderable(mesh_handle, texture_handle);
+    if (!renderable_handle) {
+        fprintf(stderr, "Error: Failed to create renderable\n");
+        unload_mesh(mesh_handle);
+        unload_texture(texture_handle);
         return false;
     }
 
@@ -306,16 +314,19 @@ void update(void)
     delta_time_seconds = (SDL_GetTicks() - previous_frame_time) / 1000.0f;
     previous_frame_time = (uint32_t)SDL_GetTicks();
 
-    /* Get the mesh data */
+    /* Get the mesh handle from the renderable */
+    brh_mesh_handle mesh_handle = get_renderable_mesh(renderable_handle);
     brh_mesh* mesh_data = get_mesh_data(mesh_handle);
     if (!mesh_data) {
         fprintf(stderr, "Error: Failed to retrieve mesh data during update\n");
         return;
     }
 
-    /* Update the mesh transformation */
-    mesh_data->translation.z = 5.0f;
-    world_matrix = mat4_create_world_matrix(mesh_data->translation, mesh_data->rotation, mesh_data->scale);
+    /* Update the renderable's transformation */
+    set_renderable_position(renderable_handle, (brh_vector3) { 0.0f, 0.0f, 5.0f });
+
+    /* Get the world matrix from the renderable */
+    world_matrix = get_renderable_world_matrix(renderable_handle);
     camera_matrix = get_mouse_camera_view_matrix(mouse_camera);
 
     /* Process mesh faces (unchanged, but using mesh_data) */
@@ -433,6 +444,9 @@ void render(void)
     /* Draw background grid */
     draw_grid(cell_size, 0xFF333333);  // Dark gray grid
 
+    /* Get the texture handle from the renderable */
+    brh_texture_handle texture_handle = get_renderable_texture(renderable_handle);
+
     /* Render all triangles */
     for (int i = 0; i < triangles_to_render_count; i++) {
         brh_triangle* triangle = &triangles_to_render[i];
@@ -482,15 +496,10 @@ void cleanup_mesh_resources(void)
         triangles_to_render = NULL;
     }
 
-    /* Unload the mesh and texture using the managers */
-    if (mesh_handle) {
-        unload_mesh(mesh_handle);
-        mesh_handle = NULL;
-    }
-
-    if (texture_handle) {
-        unload_texture(texture_handle);
-        texture_handle = NULL;
+    /* Destroy the renderable */
+    if (renderable_handle) {
+        destroy_renderable(renderable_handle);
+        renderable_handle = NULL;
     }
 }
 
