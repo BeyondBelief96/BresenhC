@@ -129,11 +129,11 @@ I used many resources for this such as Pikuma's 3D graphics course, his github c
 ### Windows with Visual Studio
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/CRenderer.git
-   cd CRenderer
+   git clone https://github.com/BeyondBelief96/BresenhC.git
+   cd BresenhC
    ```
 
-2. Open the solution file (`CRenderer.sln`) in Visual Studio
+2. Open the solution file (`BresenhC.sln`) in Visual Studio
 
 3. Build the solution (F7 or Build → Build Solution)
 
@@ -142,8 +142,8 @@ I used many resources for this such as Pikuma's 3D graphics course, his github c
 ### Using CMake (cross-platform)
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/CRenderer.git
-   cd CRenderer
+   git clone https://github.com/BeyondBelief96/BresenhC.git
+   cd BresenhC
    ```
 
 2. Create and navigate to a build directory:
@@ -164,8 +164,8 @@ I used many resources for this such as Pikuma's 3D graphics course, his github c
 
 5. Run the executable:
    ```
-   ./CRenderer  # Linux/macOS
-   CRenderer.exe  # Windows
+   ./BresenhC  # Linux/macOS
+   BresenhC.exe  # Windows
    ```
 
 ### Controls
