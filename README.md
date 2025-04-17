@@ -88,19 +88,35 @@ I used many resources for this such as Pikuma's 3D graphics course, his github c
 ## Screenshots
 
 ### Rendering Modes
+
+#### Wireframe
 ![wireframes](https://github.com/user-attachments/assets/3f89fb30-6c93-4089-83c2-731b4a1dafed)
+
+#### Flat Shading
 ![flat_shading](https://github.com/user-attachments/assets/46db6185-dc67-4b0a-99b2-4c922c2c4fca)
+
+#### Gourad Shading
 ![gourad_shading](https://github.com/user-attachments/assets/39f4ceea-7bfe-4a5c-bd33-75847ff2002b)
+
+#### Phong Shading
 ![phong_shading](https://github.com/user-attachments/assets/02717304-5c4c-4488-99b3-79a1d2cdb7a2)
+
+#### Perspective Correct Texture Mapping
 ![perspective_correct_texture_mapping](https://github.com/user-attachments/assets/c791dd51-bcbd-4e4a-9ddd-918dcc303fae)
 
-### Backface Culling
+### Techniques
+
+#### Backface Culling Off
 ![back_face_culling_off](https://github.com/user-attachments/assets/9617d463-ea87-4005-ab67-21282e43d8df)
+
+#### Backface Culling On
 ![backface_culling_on](https://github.com/user-attachments/assets/cfcdb8ef-bc39-4324-9400-81ce4e78392f)
 
-### Clipping
+#### Clipping Left Plane
 
 ![clipping_left_plane](https://github.com/user-attachments/assets/eb603cce-5a39-46af-b2f9-f9852cb6e446)
+
+#### Clipping Near Plane
 ![clipping_near_plane](https://github.com/user-attachments/assets/1a8ec155-25ee-4f1b-947f-938ec432cd1b)
 
 ## Building & Running
