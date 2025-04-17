@@ -62,7 +62,7 @@ bool initialize_window(void)
     window_width = fullscreen_width;
     window_height = (int)((float) window_width / aspect_ratio);
 
-    window = SDL_CreateWindow("C Renderer", fullscreen_width, fullscreen_height, 0);
+    window = SDL_CreateWindow("BresenhC", fullscreen_width, fullscreen_height, 0);
 
     if (!window)
     {

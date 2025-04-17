@@ -51,7 +51,6 @@ brh_renderable_handle renderables[MAX_NUM_RENDERABLES];
 /* --------- Function Declarations --------- */
 bool initialize_resources(void);
 bool load_mesh_resources(void);
-void initialize_global_light(void);
 void process_input(void);
 void update(void);
 void render(void);
