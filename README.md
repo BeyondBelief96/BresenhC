@@ -1,6 +1,6 @@
 # BresenhC
 
-A feature-rich software renderer written in C with full 3D graphics pipeline implementation.
+A software renderer written in C with full 3D graphics pipeline implementation.
 
 ![perspective_correct_texture_mapping](https://github.com/user-attachments/assets/a11592fe-11ff-47a3-ba57-152743b8d4e7)
 
