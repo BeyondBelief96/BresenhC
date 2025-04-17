@@ -366,30 +366,25 @@ static void update_renderable_triangles(brh_renderable_handle renderable_handle,
             if (face.b_vn >= 0 && face.b_vn < num_normals) face_normals_model[1] = mesh_data->normals[face.b_vn];
             if (face.c_vn >= 0 && face.c_vn < num_normals) face_normals_model[2] = mesh_data->normals[face.c_vn];
         }
-        else {
-            // Optional: Calculate geometric normal if none provided (less accurate shading)
-            brh_vector3 geometric_normal = get_face_normal(face_vertices_model[0], face_vertices_model[1], face_vertices_model[2]);
-            face_normals_model[0] = face_normals_model[1] = face_normals_model[2] = geometric_normal;
-        }
 
         // --- 2. Transform Vertices and Normals, Calculate Initial Vertex Data ---
         for (int j = 0; j < 3; j++) {
             // Transform vertex position to World -> Camera -> Clip space
-            brh_vector4 world_vertex_h = vec4_from_vec3(face_vertices_model[j]);
-            mat4_mul_vec4_ref(&world_matrix, &world_vertex_h);
-            face_vertices_world[j] = world_vertex_h; // Store world pos (needed for lighting)
+            brh_vector4 world_vertex = vec4_from_vec3(face_vertices_model[j]);
+            mat4_mul_vec4_ref(&world_matrix, &world_vertex);
+            face_vertices_world[j] = world_vertex; // Store world pos (needed for lighting)
 
-            brh_vector4 camera_vertex_h = world_vertex_h;
-            mat4_mul_vec4_ref(&camera_matrix, &camera_vertex_h);
-            face_vertices_camera[j] = camera_vertex_h; // Store camera pos (needed for culling)
+            brh_vector4 camera_vertex = world_vertex;
+            mat4_mul_vec4_ref(&camera_matrix, &camera_vertex);
+            face_vertices_camera[j] = camera_vertex; // Store camera pos (needed for culling)
 
-            brh_vector4 clip_vertex = mat4_mul_vec4(&projection_matrix, camera_vertex_h);
+            brh_vector4 clip_vertex = mat4_mul_vec4(&projection_matrix, camera_vertex);
 
             // Transform vertex normal to World Space (using approximation)
-            brh_vector4 normal_h = vec4_from_vec3(face_normals_model[j]);
-            normal_h.w = 0; // Normals are directions, ignore translation
-            mat4_mul_vec4_ref(&normal_matrix, &normal_h);
-            face_normals_world[j] = vec3_unit_vector(vec3_from_vec4(normal_h)); // Normalize world normal
+            brh_vector4 normal = vec4_from_vec3(face_normals_model[j]);
+            normal.w = 0; // Normals are directions, ignore translation
+            mat4_mul_vec4_ref(&normal_matrix, &normal);
+            face_normals_world[j] = vec3_unit_vector(vec3_from_vec4(normal)); // Normalize world normal
 
             // Store initial data in brh_vertex
             triangle_vertices[j].position = clip_vertex; // Clip space position

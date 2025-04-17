@@ -43,6 +43,8 @@ brh_mouse_camera* mouse_camera = NULL;
 brh_renderable_handle f117_renderable = NULL;
 brh_renderable_handle f22_renderable = NULL;
 brh_renderable_handle mirage_renderable = NULL;
+brh_renderable_handle crab_renderable = NULL;
+brh_renderable_handle drone_renderable = NULL;
 
 brh_renderable_handle renderables[MAX_NUM_RENDERABLES];
 
@@ -125,6 +127,9 @@ bool initialize_resources(void)
 	/* Initialize global light direction */
 	initialize_global_light();
 
+    set_shading_method(SHADING_GOURAUD);
+	set_render_method(RENDER_TEXTURED);
+
     return true;
 }
 
@@ -166,10 +171,33 @@ bool load_mesh_resources(void)
     }
     renderables[2] = mirage_renderable;
 
+	crab_renderable = create_renderable_from_files("assets/crab.obj", "assets/crab.png");
+	if (!crab_renderable) {
+		fprintf(stderr, "Error: Failed to create Crab renderable\n");
+		destroy_renderable(f117_renderable);
+		destroy_renderable(f22_renderable);
+		destroy_renderable(mirage_renderable);
+		return false;
+	}
+	renderables[3] = crab_renderable;
+
+	drone_renderable = create_renderable_from_files("assets/drone.obj", "assets/drone.png");
+	if (!drone_renderable) {
+		fprintf(stderr, "Error: Failed to create Drone renderable\n");
+		destroy_renderable(f117_renderable);
+		destroy_renderable(f22_renderable);
+		destroy_renderable(mirage_renderable);
+		destroy_renderable(crab_renderable);
+		return false;
+	}
+	renderables[4] = drone_renderable;
+
     // Set initial positions
     set_renderable_position(f117_renderable, (brh_vector3) { -5.0f, 0.0f, 5.0f });
     set_renderable_position(f22_renderable, (brh_vector3) { 0.0f, 0.0f, 5.0f });
     set_renderable_position(mirage_renderable, (brh_vector3) { 5.0f, 0.0f, 5.0f });
+	set_renderable_position(crab_renderable, (brh_vector3) { 0.0f, 0.0f, 10.0f });
+	set_renderable_position(drone_renderable, (brh_vector3) { 0.0f, 0.0f, 15.0f });
 
     return true;
 }

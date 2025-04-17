@@ -6,7 +6,7 @@
 #include "brh_vector.h"
 #include "math_utils.h"
 #include "brh_display.h"
-#include "brh_light.h" // Include for shading functions and enum
+#include "brh_light.h" 
 
 // --- Forward Declarations for new/updated rasterizers ---
 static void fill_flat_bottom_triangle_perspective(
