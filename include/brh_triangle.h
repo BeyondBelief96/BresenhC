@@ -37,7 +37,6 @@ typedef struct {
     float r_over_w;
     float g_over_w;
     float b_over_w;
-    // We don't need alpha over w, usually alpha is constant or handled separately
 
     // Phong shading (normal components)
     float nx_over_w;
@@ -132,32 +131,3 @@ void draw_filled_triangle(brh_triangle* triangle, uint32_t color);
  * @param texture Pointer to the loaded texture data (array of uint32_t colors).
  */
 void draw_textured_triangle(brh_triangle* triangle, brh_texture_handle texture);
-
-/**
- * @brief Calculates the barycentric coordinates of a point P relative to a triangle ABC.
- *
- * Determines the weights (alpha, beta, gamma) such that P = alpha*A + beta*B + gamma*C.
- * These weights are used for interpolation across the triangle surface.
- * Returns {0, 0, 0} for degenerate triangles.
- *
- * @param p The 2D point (screen coordinates) to find coordinates for.
- * @param a The 2D position of the first triangle vertex.
- * @param b The 2D position of the second triangle vertex.
- * @param c The 2D position of the third triangle vertex.
- * @return A `brh_vector3` containing the barycentric weights {alpha, beta, gamma}.
- */
-brh_vector3 calculate_barycentic_coordinates(brh_vector2 p, brh_vector2 a, brh_vector2 b, brh_vector2 c);
-
-/*
-* @brief Interpolates between two vertices based on a parameter t.
-* 
-* This function linearly interpolates the position, texture coordinates,
-* and normal of two vertices based on the parameter t.
-* 
-* @param v0 The first vertex.
-* @param v1 The second vertex.
-* @param t The interpolation parameter (0 <= t <= 1).
-* 
-* @return A new `brh_vertex` that is the result of the interpolation.
-*/
-brh_vertex interpolate_vertices(brh_vertex v0, brh_vertex v1, float t);

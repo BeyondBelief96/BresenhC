@@ -131,6 +131,12 @@ SDL_Renderer* get_renderer(void);
 uint32_t get_color_buffer_at(int x, int y);
 
 /**
+ * @brief Gets a direct pointer to the color buffer. Use with caution.
+ * @return Pointer to the start of the color buffer, or NULL if not initialized.
+*/
+uint32_t* get_color_buffer_ptr(void);
+
+/**
  * @brief Sets the color buffer at the specified coordinates.
  *
  * This function sets the color of a pixel in the color buffer at the specified
@@ -152,6 +158,12 @@ void set_color_buffer_at(int x, int y, uint32_t color);
  * @return A pointer to the z-buffer.
  */
 float get_z_buffer_at(int x, int y);
+
+/**
+ * @brief Gets a direct pointer to the z-buffer. Use with caution.
+ * @return Pointer to the start of the z-buffer, or NULL if not initialized.
+*/
+float* get_z_buffer_ptr(void);
 
 /**
  * @brief Sets the z-buffer at the specified coordinates.

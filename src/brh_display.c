@@ -198,6 +198,11 @@ uint32_t get_color_buffer_at(int x, int y)
 	return color_buffer[(window_width * y) + x];
 }
 
+uint32_t* get_color_buffer_ptr(void)
+{
+    return color_buffer;
+}
+
 void set_color_buffer_at(int x, int y, uint32_t color)
 {
 	if (x < 0 || x >= window_width || y < 0 || y >= window_height || !color_buffer)
@@ -217,6 +222,11 @@ float get_z_buffer_at(int x, int y)
 	}
 
 	return z_buffer[(window_width * y) + x];
+}
+
+float* get_z_buffer_ptr(void)
+{
+    return z_buffer;
 }
 
 void set_z_buffer_at(int x, int y, float depth)

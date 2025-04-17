@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "brh_clipping.h"
+#include "brh_light.h"
 #include "brh_triangle.h"
 #include "math_utils.h"
 
@@ -13,6 +14,7 @@ static bool is_vertex_inside_plane(brh_vector4 v, brh_clip_plane plane);
 static float get_line_plane_intersection_parameter(brh_vector4 v0, brh_vector4 v1, brh_clip_plane plane);
 static int clip_triangle_against_plane(brh_triangle* triangle, brh_clip_plane plane, brh_triangle* output);
 static void clip_polygon_against_frustum_plane(brh_polygon* polygon, brh_frustum_plane plane);
+static brh_vertex interpolate_vertices(brh_vertex v0, brh_vertex v1, float t);
 
 /* function definitions */
 
@@ -79,6 +81,28 @@ static bool is_vertex_inside_plane(brh_vector4 v, brh_clip_plane plane) {
     case CLIP_FAR:    return v.z <= v.w;
     default:          return true;
     }
+}
+
+static brh_vertex interpolate_vertices(brh_vertex v0, brh_vertex v1, float t) {
+    brh_vertex result;
+
+    // Interpolate position (clip space)
+    result.position = vec4_lerp(v0.position, v1.position, t);
+
+    // Interpolate texture coordinates
+    result.texel.u = interpolate_float(v0.texel.u, v1.texel.u, t);
+    result.texel.v = interpolate_float(v0.texel.v, v1.texel.v, t);
+
+    // Interpolate normals (world space)
+    result.normal = vec3_lerp(v0.normal, v1.normal, t);
+
+    // Interpolate vertex color (Gouraud shading)
+    result.color = interpolate_colors(v0.color, v1.color, t);
+
+    // Interpolate inverse W (clip space)
+    result.inv_w = interpolate_float(v0.inv_w, v1.inv_w, t);
+
+    return result;
 }
 
 /**
