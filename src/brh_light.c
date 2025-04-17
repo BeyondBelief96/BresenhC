@@ -11,7 +11,7 @@ static brh_global_light global_light = {
     .ambient = 0.1f,
     .diffuse = 0.7f,
     .specular = 0.2f, // Add some default specularity
-    .specular_power = 32 // Common default shininess
+    .specular_power = 64 // Common default shininess
 };
 
 

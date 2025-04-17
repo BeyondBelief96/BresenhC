@@ -125,17 +125,12 @@ bool initialize_resources(void)
     SDL_SetWindowRelativeMouseMode(get_window(), false);
 
 	/* Initialize global light direction */
-	initialize_global_light();
+    set_global_light_direction((brh_vector3) { 0.0f, -1.0f, 1.0f });
 
     set_shading_method(SHADING_GOURAUD);
 	set_render_method(RENDER_TEXTURED);
 
     return true;
-}
-
-void initialize_global_light(void)
-{
-	set_global_light_direction((brh_vector3) { 0.0f, 0.0f, 1.0f });
 }
 
 /* Helper to load mesh and related resources */
@@ -308,7 +303,7 @@ void render(void)
     // Shading method is implicitly retrieved by the functions called below
 
     /* Clear buffers */
-    clear_color_buffer(0xFF101020);  // Dark blue/purple background
+    clear_color_buffer(0xFF111111);  // Dark blue/purple background
     clear_z_buffer();
 
     /* Draw background grid (optional) */
