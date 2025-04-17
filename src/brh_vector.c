@@ -271,6 +271,25 @@ brh_vector3 vec3_rotate_z_ref(brh_vector3* v, float angle)
 	return *v;
 }
 
+brh_vector3 vec3_lerp(brh_vector3 a, brh_vector3 b, float t) {
+	brh_vector3 result = {
+		.x = a.x + t * (b.x - a.x),
+		.y = a.y + t * (b.y - a.y),
+		.z = a.z + t * (b.z - a.z)
+	};
+	return result;
+}
+
+brh_vector4 vec4_lerp(brh_vector4 a, brh_vector4 b, float t) {
+	brh_vector4 result = {
+		.x = a.x + t * (b.x - a.x),
+		.y = a.y + t * (b.y - a.y),
+		.z = a.z + t * (b.z - a.z),
+		.w = a.w + t * (b.w - a.w)
+	};
+	return result;
+}
+
 brh_vector3 vec3_from_vec4(brh_vector4 v)
 {
 	brh_vector3 result = {

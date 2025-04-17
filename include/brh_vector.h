@@ -295,6 +295,27 @@ brh_vector3 vec3_rotate_y_ref(brh_vector3* v, float angle);
 brh_vector3 vec3_rotate_z_ref(brh_vector3* v, float angle);
 
 /**
+ * @brief Linearly interpolate between two 3D vectors.
+ *
+ * @param a The starting vector.
+ * @param b The ending vector.
+ * @param t The interpolation factor (0.0 = a, 1.0 = b).
+ * @return The interpolated vector.
+ */
+brh_vector3 vec3_lerp(brh_vector3 a, brh_vector3 b, float t);
+
+/**
+ * @brief Linearly interpolate between two 4D vectors.
+ *
+ * @param a The starting vector.
+ * @param b The ending vector.
+ * @param t The interpolation factor (0.0 = a, 1.0 = b).
+ * @return The interpolated vector.
+ */
+brh_vector4 vec4_lerp(brh_vector4 a, brh_vector4 b, float t);
+
+
+/**
  * @brief Convert a 4D vector to a 3D vector.
  * @param v The 4D vector.
  * @return The converted 3D vector.

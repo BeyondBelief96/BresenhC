@@ -185,9 +185,10 @@ void process_input(void)
             break;
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
             if (event.button.button == SDL_BUTTON_LEFT) {
-                // Lock/unlock mouse on left click
                 mouse_locked = !mouse_locked;
                 SDL_SetWindowRelativeMouseMode(get_window(), mouse_locked);
+                // Reset mouse init flag when locking/unlocking
+                mouse_initialized = false;
             }
             break;
         case SDL_EVENT_MOUSE_MOTION:
@@ -196,90 +197,62 @@ void process_input(void)
                 int mouse_x_rel = (int)event.motion.xrel;
                 int mouse_y_rel = (int)event.motion.yrel;
 
+                // Skip the first motion event after locking to avoid jumps
                 if (!mouse_initialized) {
-                    // Skip the first frame after mouse lock to avoid jumps
                     mouse_initialized = true;
-                    break;
                 }
-
-                // Update camera orientation based on mouse movement
-                update_mouse_camera_view(mouse_camera, mouse_x_rel, mouse_y_rel);
+                else {
+                    update_mouse_camera_view(mouse_camera, mouse_x_rel, mouse_y_rel);
+                }
             }
             break;
 
         case SDL_EVENT_KEY_DOWN:
             switch (event.key.key)
             {
-            case SDLK_ESCAPE:
-                is_running = false;
-                break;
-            case SDLK_1:
-                set_render_method(RENDER_WIREFRAME_VERTEX);
-                break;
-            case SDLK_2:
-                set_render_method(RENDER_WIREFRAME);
-                break;
-            case SDLK_3:
-                set_render_method(RENDER_FILL_TRIANGLE);
-                break;
-            case SDLK_4:
-                set_render_method(RENDER_FILL_TRIANGLE_WIREFRAME);
-                break;
-            case SDLK_5:
-                set_render_method(RENDER_TEXTURED);
-                break;
-            case SDLK_6:
-                set_render_method(RENDER_TEXTURED_WIREFRAME);
-                break;
-            case SDLK_C:
-                set_cull_method(CULL_BACKFACE);
-                break;
-            case SDLK_X:
-                set_cull_method(CULL_NONE);
-                break;
+            case SDLK_ESCAPE: is_running = false; break;
+                // Render Method Keys
+            case SDLK_1: set_render_method(RENDER_WIREFRAME_VERTEX); break;
+            case SDLK_2: set_render_method(RENDER_WIREFRAME); break;
+            case SDLK_3: set_render_method(RENDER_FILL); break;
+            case SDLK_4: set_render_method(RENDER_FILL_WIREFRAME); break;
+            case SDLK_5: set_render_method(RENDER_TEXTURED); break;
+            case SDLK_6: set_render_method(RENDER_TEXTURED_WIREFRAME); break;
+                // Culling Keys
+            case SDLK_C: set_cull_method(CULL_BACKFACE); break;
+            case SDLK_X: set_cull_method(CULL_NONE); break;
+                // Shading Keys
+            case SDLK_F1: set_shading_method(SHADING_NONE); printf("Shading: None\n"); break;
+            case SDLK_F2: set_shading_method(SHADING_FLAT); printf("Shading: Flat\n"); break;
+            case SDLK_F3: set_shading_method(SHADING_GOURAUD); printf("Shading: Gouraud\n"); break;
+            case SDLK_F4: set_shading_method(SHADING_PHONG); printf("Shading: Phong\n"); break; // Add Phong key
                 // Camera movement controls
-            case SDLK_W:
-                movement_forward = 1;
-                break;
-            case SDLK_S:
-                movement_forward = -1;
-                break;
-            case SDLK_D:
-                movement_right = 1;
-                break;
-            case SDLK_A:
-                movement_right = -1;
-                break;
-            case SDLK_SPACE:
-                movement_up = 1;
-                break;
-            case SDLK_LCTRL:
-                movement_up = -1;
-                break;
+            case SDLK_W: movement_forward = 1; break;
+            case SDLK_S: movement_forward = -1; break;
+            case SDLK_D: movement_right = 1; break;
+            case SDLK_A: movement_right = -1; break;
+            case SDLK_SPACE: movement_up = 1; break;
+            case SDLK_LCTRL: movement_up = -1; break;
             }
             break;
         case SDL_EVENT_KEY_UP:
             switch (event.key.key)
             {
-            case SDLK_W:
-            case SDLK_S:
-                movement_forward = 0;
-                break;
-            case SDLK_A:
-            case SDLK_D:
-                movement_right = 0;
-                break;
-            case SDLK_SPACE:
-            case SDLK_LCTRL:
-                movement_up = 0;
-                break;
+            case SDLK_W: if (movement_forward == 1) movement_forward = 0; break;
+            case SDLK_S: if (movement_forward == -1) movement_forward = 0; break;
+            case SDLK_A: if (movement_right == -1) movement_right = 0; break;
+            case SDLK_D: if (movement_right == 1) movement_right = 0; break;
+            case SDLK_SPACE: if (movement_up == 1) movement_up = 0; break;
+            case SDLK_LCTRL: if (movement_up == -1) movement_up = 0; break;
             }
             break;
         }
     }
 
-    // Update camera position based on movement keys
-    move_mouse_camera(mouse_camera, movement_forward, movement_right, movement_up, delta_time_seconds);
+    // Update camera position based on movement keys (only if locked)
+    if (mouse_locked) {
+        move_mouse_camera(mouse_camera, movement_forward, movement_right, movement_up, delta_time_seconds);
+    }
 }
 
 /* --------- Update Game State --------- */
@@ -297,66 +270,67 @@ void update(void)
     camera_matrix = get_mouse_camera_view_matrix(mouse_camera);
 
     /* Process mesh faces (unchanged, but using mesh_data) */
-    update_renderables(delta_time_seconds, camera_matrix, perspective_projection_matrix); 
+    update_renderables(delta_time_seconds, camera_matrix, perspective_projection_matrix, mouse_camera); 
 }
 
 /* --------- Render the Scene --------- */
 void render(void)
 {
     const enum render_method current_render_method = get_render_method();
+    // Shading method is implicitly retrieved by the functions called below
 
     /* Clear buffers */
-    clear_color_buffer(0xFF000000);  // Black background
+    clear_color_buffer(0xFF101020);  // Dark blue/purple background
     clear_z_buffer();
 
-    /* Draw background grid */
-    draw_grid(cell_size, 0xFF333333);  // Dark gray grid
+    /* Draw background grid (optional) */
+    // draw_grid(cell_size, 0xFF333333);
 
     /* Render each renderable */
     for (int r = 0; r < MAX_NUM_RENDERABLES; r++) {
-        if (renderables[r] == NULL) continue;
+        if (renderables[r] == NULL) continue; // Skip invalid/unloaded renderables
 
-        brh_texture_handle texture = get_renderable_texture(renderables[r]);
+        brh_texture_handle texture = get_renderable_texture(renderables[r]); // Get texture handle
         brh_triangle* triangles = get_renderable_triangles(renderables[r]);
         int triangle_count = get_renderable_triangle_count(renderables[r]);
 
-        /* Render all triangles for this renderable */
+        // Render all triangles for this renderable
         for (int i = 0; i < triangle_count; i++) {
-            brh_triangle* triangle = &triangles[i];
+            brh_triangle* triangle = &triangles[i]; // Get pointer to the triangle
 
-            /* Draw filled triangles if required */
-            if (current_render_method == RENDER_FILL_TRIANGLE ||
-                current_render_method == RENDER_FILL_TRIANGLE_WIREFRAME) {
+            // Draw filled/textured triangles first (they use Z-buffer)
+            bool needs_fill = (current_render_method == RENDER_FILL || current_render_method == RENDER_FILL_WIREFRAME);
+            bool needs_texture = (current_render_method == RENDER_TEXTURED || current_render_method == RENDER_TEXTURED_WIREFRAME);
+
+            if (needs_texture && texture != NULL) {
+                // Pass the texture handle to draw_textured_triangle
+                draw_textured_triangle(triangle, texture);
+            }
+            else if (needs_fill || (needs_texture && texture == NULL)) { // Fallback to fill if texture needed but missing
+                // Pass the triangle's base color (or flat-shaded color if applicable)
                 draw_filled_triangle(triangle, triangle->color);
             }
 
-            /* Draw textured triangles if required */
-            if (current_render_method == RENDER_TEXTURED ||
-                current_render_method == RENDER_TEXTURED_WIREFRAME) {
-                draw_textured_triangle(triangle, texture);
-            }
-
-            /* Draw wireframe if required */
+            // Draw wireframe overlay if required (drawn on top)
             if (current_render_method == RENDER_WIREFRAME ||
                 current_render_method == RENDER_WIREFRAME_VERTEX ||
-                current_render_method == RENDER_FILL_TRIANGLE_WIREFRAME ||
+                current_render_method == RENDER_FILL_WIREFRAME ||
                 current_render_method == RENDER_TEXTURED_WIREFRAME) {
-                draw_triangle_outline(triangle, 0xFFFFFFFF);  // White wireframe
+                draw_triangle_outline(triangle, 0xFFBBBBBB);  // Light gray wireframe
             }
 
-            /* Draw vertex markers if required */
+            // Draw vertex markers if required (drawn on top)
             if (current_render_method == RENDER_WIREFRAME_VERTEX) {
-                // Draw red squares at each vertex
                 for (int j = 0; j < 3; j++) {
                     draw_rect(
-                        (int)triangle->vertices[j].position.x - 3,
-                        (int)triangle->vertices[j].position.y - 3,
-                        6, 6, 0xFFFF0000
+                        (int)triangle->vertices[j].position.x - 2, // Smaller rect
+                        (int)triangle->vertices[j].position.y - 2,
+                        4, 4, 0xFFFF0000 // Red vertices
                     );
                 }
             }
-        }
-    }
+        } // End triangle loop
+    } // End renderable loop
 
     /* Present the frame */
     render_color_buffer();

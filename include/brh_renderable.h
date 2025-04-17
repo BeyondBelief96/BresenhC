@@ -3,6 +3,7 @@
 #include "brh_mesh_manager.h"
 #include "brh_texture_manager.h"
 #include "brh_matrix.h"
+#include "brh_camera.h"
 
 // Opaque handle to a renderable object (hides implementation details)
 typedef struct brh_renderable_handle_t* brh_renderable_handle;
@@ -116,4 +117,4 @@ int get_renderable_triangle_count(brh_renderable_handle renderable_handle);
  * @param camera_matrix The camera view matrix
  * @param projection_matrix The projection matrix
  */
-void update_renderables(float delta_time, brh_mat4 camera_matrix, brh_mat4 projection_matrix);
+void update_renderables(float delta_time, brh_mat4 camera_matrix, brh_mat4 projection_matrix,  brh_mouse_camera* camera);

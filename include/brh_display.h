@@ -8,18 +8,20 @@
 #define FPS 60
 #define FRAME_TARGET_TIME (1000 / FPS)
 
-enum cull_method {
+enum cull_method 
+{
     CULL_NONE,
     CULL_BACKFACE
 };
 
-enum render_method {
-    RENDER_WIREFRAME,
-    RENDER_WIREFRAME_VERTEX,
-    RENDER_FILL_TRIANGLE,
-    RENDER_FILL_TRIANGLE_WIREFRAME,
-    RENDER_TEXTURED,
-    RENDER_TEXTURED_WIREFRAME,
+enum render_method
+{
+    RENDER_WIREFRAME,              // Draw only lines
+    RENDER_WIREFRAME_VERTEX,       // Draw lines and vertex points
+    RENDER_FILL,                   // Draw filled triangles (color/shading depends on shading_method)
+    RENDER_FILL_WIREFRAME,         // Draw filled triangles + wireframe overlay
+    RENDER_TEXTURED,               // Draw textured triangles (shading depends on shading_method)
+    RENDER_TEXTURED_WIREFRAME      // Draw textured triangles + wireframe overlay
 };
 
 /*

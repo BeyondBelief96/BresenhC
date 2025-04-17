@@ -25,21 +25,31 @@ typedef struct brh_texel {
 } brh_texel;
 
 
-// Structure to hold perspective-correct attributes for perspective-correct texture mapping
+// Structure to hold perspective-correct attributes for interpolation
 typedef struct {
+    float inv_w; // 1/w
+
+    // Texture coordinates
     float u_over_w;
     float v_over_w;
-    float inv_w; // 1/w
+
+    // Gouraud shading (color components)
+    float r_over_w;
+    float g_over_w;
+    float b_over_w;
+    // We don't need alpha over w, usually alpha is constant or handled separately
+
+    // Phong shading (normal components)
+    float nx_over_w;
+    float ny_over_w;
+    float nz_over_w;
+
 } brh_perspective_attribs;
 
 /**
  * @struct brh_vertex
  * @brief Represents a vertex with position, texture coordinates, normal, and perspective attribute.
- *
- * Defines a vertex combining its 2D screen-space position (after projection and division),
- * its texture coordinates (u,v) for mapping, its original 3D normal vector,
- * and the inverse of its clip-space W component (1/w) for perspective correction.
- *
+ * // ... existing comments ...
  * @var brh_vertex::position
  * A `brh_vector4` storing the final screen-space X and Y. The Z component might store
  * NDC Z (for depth buffering) or original world Z (for painter's algorithm).
@@ -47,7 +57,9 @@ typedef struct {
  * @var brh_vertex::texel
  * A `brh_texel` representing the (u, v) texture coordinates for the vertex.
  * @var brh_vertex::normal
- * A `brh_vector3` representing the original normal vector (often used pre-projection).
+ * A `brh_vector3` representing the *world-space* normal vector (used for lighting calculations before rasterization).
+ * @var brh_vertex::color
+ * A `uint32_t` storing the calculated vertex color (used *only* for Gouraud shading setup).
  * @var brh_vertex::inv_w
  * The inverse (1/w) of the vertex's W component in *clip space* (before perspective division).
  * This is crucial for perspective-correct interpolation.
@@ -55,8 +67,9 @@ typedef struct {
 typedef struct {
     brh_vector4 position; // Holds final screen X, Y. Z/W usage depends on depth/sorting method.
     brh_texel texel;
-    brh_vector3 normal;
-    float inv_w;       // Inverse W (1/w) from clip space
+    brh_vector3 normal;    // World-space normal for lighting calculations
+    uint32_t color;        // Calculated vertex color (used for Gouraud setup)
+    float inv_w;           // Inverse W (1/w) from clip space
 } brh_vertex;
 
 /**
