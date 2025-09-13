@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -21,10 +21,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{a090d7d2-6415-45d1-a2fc-81c374cbda46}</ProjectGuid>
-    <RootNamespace>ConsoleApplication1</RootNamespace>
+    <ProjectGuid>{0ee0fb40-7561-4d14-8da4-7c305171da0e}</ProjectGuid>
+    <RootNamespace>BresenhC</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>BresenhC</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -72,12 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Graphics\Sdl\SDL3-3.2.8\include;C:\Users\brand\Code\graphics\BresenhC\BresenhC\include;C:\Graphics\Sdl\SDL3-3.2.8\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Graphics\Sdl\SDL3-3.2.8\lib;C:\Graphics\Sdl\SDL3-3.2.8\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\SDL\SDL3-devel-3.2.22-VC\SDL3-3.2.22\include;C:\Users\brand\source\repos\BresenhC\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\brand\source\repos\BresenhC\lib;C:\SDL\SDL3-devel-3.2.22-VC\SDL3-3.2.22\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Graphics\Sdl\SDL3-3.2.8\include;C:\Users\brand\Code\graphics\BresenhC\BresenhC\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>C:\Graphics\Sdl\SDL3-3.2.8\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IncludePath>C:\SDL\SDL3-devel-3.2.22-VC\SDL3-3.2.22\include;C:\Users\brand\source\repos\BresenhC\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\brand\source\repos\BresenhC\lib;C:\SDL\SDL3-devel-3.2.22-VC\SDL3-3.2.22\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -102,8 +101,6 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -111,15 +108,13 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard_C>stdc11</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Graphics\Sdl\SDL3-3.2.8\lib\x64;C:\Graphics\Sdl\SDL3-3.2.8\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL3.lib;%(AdditionalDependencies);SDL3.lib</AdditionalDependencies>
+      <AdditionalDependencies>SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -128,63 +123,54 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Graphics\Sdl\SDL3-3.2.8\lib\x64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);SDL3.lib</AdditionalDependencies>
+      <AdditionalDependencies>SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\array.c" />
-    <ClCompile Include="src\brh_camera.c" />
-    <ClCompile Include="src\brh_face.c" />
-    <ClCompile Include="src\brh_geometry.c" />
-    <ClCompile Include="src\brh_matrix.c" />
-    <ClCompile Include="src\brh_clipping.c" />
-    <ClCompile Include="src\brh_mesh_manager.c" />
-    <ClCompile Include="src\brh_renderable.c" />
-    <ClCompile Include="src\brh_texture_manager.c" />
-    <ClCompile Include="src\brh_vector.c" />
-    <ClCompile Include="src\brh_display.c" />
-    <ClCompile Include="src\brh_light.c" />
-    <ClCompile Include="src\main.c" />
-    <ClCompile Include="src\math_utils.c" />
-    <ClCompile Include="src\brh_mesh.c" />
-    <ClCompile Include="src\model_loader.c" />
-    <ClCompile Include="src\brh_triangle.c" />
-    <ClCompile Include="src\upng.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\brh_camera.h" />
     <ClInclude Include="include\array.h" />
+    <ClInclude Include="include\brh_camera.h" />
+    <ClInclude Include="include\brh_clipping.h" />
+    <ClInclude Include="include\brh_display.h" />
     <ClInclude Include="include\brh_face.h" />
     <ClInclude Include="include\brh_geometry.h" />
+    <ClInclude Include="include\brh_light.h" />
     <ClInclude Include="include\brh_matrix.h" />
-    <ClInclude Include="include\brh_clipping.h" />
+    <ClInclude Include="include\brh_mesh.h" />
     <ClInclude Include="include\brh_mesh_manager.h" />
     <ClInclude Include="include\brh_renderable.h" />
     <ClInclude Include="include\brh_texture_manager.h" />
+    <ClInclude Include="include\brh_triangle.h" />
     <ClInclude Include="include\brh_vector.h" />
     <ClInclude Include="include\cgltf.h" />
-    <ClInclude Include="include\brh_display.h" />
-    <ClInclude Include="include\brh_light.h" />
     <ClInclude Include="include\math_utils.h" />
-    <ClInclude Include="include\brh_mesh.h" />
     <ClInclude Include="include\model_loader.h" />
-    <ClInclude Include="include\brh_triangle.h" />
     <ClInclude Include="include\upng.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".gitattributes" />
-    <None Include=".gitignore" />
-    <None Include="SDL3.dll" />
-    <None Include="README.md" />
+    <ClCompile Include="src\array.c" />
+    <ClCompile Include="src\brh_camera.c" />
+    <ClCompile Include="src\brh_clipping.c" />
+    <ClCompile Include="src\brh_display.c" />
+    <ClCompile Include="src\brh_face.c" />
+    <ClCompile Include="src\brh_geometry.c" />
+    <ClCompile Include="src\brh_light.c" />
+    <ClCompile Include="src\brh_matrix.c" />
+    <ClCompile Include="src\brh_mesh.c" />
+    <ClCompile Include="src\brh_mesh_manager.c" />
+    <ClCompile Include="src\brh_renderable.c" />
+    <ClCompile Include="src\brh_texture_manager.c" />
+    <ClCompile Include="src\brh_triangle.c" />
+    <ClCompile Include="src\brh_vector.c" />
+    <ClCompile Include="src\main.c" />
+    <ClCompile Include="src\math_utils.c" />
+    <ClCompile Include="src\model_loader.c" />
+    <ClCompile Include="src\upng.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

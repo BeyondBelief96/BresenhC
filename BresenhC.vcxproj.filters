@@ -3,11 +3,11 @@
   <ItemGroup>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -18,7 +18,43 @@
     <ClCompile Include="src\array.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\brh_camera.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_clipping.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\brh_display.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_face.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_geometry.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_light.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_matrix.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_mesh.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_mesh_manager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_renderable.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_texture_manager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_triangle.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\brh_vector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\main.c">
@@ -27,46 +63,10 @@
     <ClCompile Include="src\math_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\brh_mesh.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\brh_triangle.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\model_loader.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\brh_matrix.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\brh_vector.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\brh_light.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\brh_face.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\upng.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\brh_camera.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\brh_clipping.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\brh_geometry.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\brh_mesh_manager.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\brh_texture_manager.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\brh_renderable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -74,49 +74,28 @@
     <ClInclude Include="include\array.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\brh_display.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\math_utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\brh_mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\brh_triangle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\model_loader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\cgltf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\brh_matrix.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\brh_vector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\brh_light.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\brh_face.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\upng.h">
+    <ClInclude Include="include\brh_camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\brh_clipping.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\brh_display.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_face.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\brh_geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\brh_camera.h">
+    <ClInclude Include="include\brh_light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\brh_texture_manager.h">
+    <ClInclude Include="include\brh_matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\brh_mesh_manager.h">
@@ -125,11 +104,26 @@
     <ClInclude Include="include\brh_renderable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include=".gitattributes" />
-    <None Include=".gitignore" />
-    <None Include="SDL3.dll" />
-    <None Include="README.md" />
+    <ClInclude Include="include\brh_texture_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_triangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\brh_vector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cgltf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model_loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\upng.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
